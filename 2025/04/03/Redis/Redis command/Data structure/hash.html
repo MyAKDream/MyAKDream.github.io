@@ -1,0 +1,304 @@
+<hr>
+<h2 id="title-哈希表hashcategories-C-Backend-Redis-Redis-command-Data-structuretags-Redisdate-2025-04-03-00-00-00"><a href="#title-哈希表hashcategories-C-Backend-Redis-Redis-command-Data-structuretags-Redisdate-2025-04-03-00-00-00" class="headerlink" title="title: 哈希表hashcategories:  - C++ Backend  - Redis  - Redis command  - Data structuretags:  - Redisdate: 2025-04-03 00:00:00"></a>title: 哈希表hash<br>categories:<br>  - C++ Backend<br>  - Redis<br>  - Redis command<br>  - Data structure<br>tags:<br>  - Redis<br>date: 2025-04-03 00:00:00</h2><h1 id="hash"><a href="#hash" class="headerlink" title="hash"></a>hash</h1><h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>在Redis中，哈希类型是指值本身有是一个键值对结构，形如:</p>
+<pre><code class="language-json">key = &quot;key&quot;,
+value = {{field1, value1}, {field2, value2}}   
+</code></pre>
+<p><img src="/2025/04/03/Redis/Redis%20command/Data%20structure/hash/image.png" alt="alt text">{: height&#x3D;75%, width&#x3D;75%}</p>
+<p>注意：哈希类型中的映射关系通常为field-value，用于区分Redis整体的键值对（key-value），注意的是这里的value是指field对应的值，不是键（key）对应的值。</p>
+<h2 id="相关命令"><a href="#相关命令" class="headerlink" title="相关命令"></a>相关命令</h2><p><font size=5>HSET</font></p>
+<p>功能：设置hash中指定的字段（field）和值（value）<br>时间复杂度：$O(1)$<br>返回值：添加的字段的个数</p>
+<pre><code class="language-bash">HSET key field value [field value..]
+
+127.0.0.1:6379&gt; hset key f1 111
+(integer) 1
+127.0.0.1:6379&gt; hset key f2 222 f3 333 f4 444
+(integer) 3
+</code></pre>
+<p><font size=5>HGET</font></p>
+<p>功能：获取hash中指定的字段的值（value）<br>时间复杂度：$O(1)$<br>返回值：值</p>
+<pre><code class="language-bash">HSET key field
+
+127.0.0.1:6379&gt; hget key f1
+&quot;111&quot;
+127.0.0.1:6379&gt; hget key f2
+&quot;222&quot;
+</code></pre>
+<p><font size=5>HEXISTS</font></p>
+<p>功能：判断hash中是否有指定字段<br>时间复杂度：$O(1)$<br>返回：是否存在</p>
+<pre><code class="language-bash">HEXISTS key field
+
+127.0.0.1:6379&gt; hexists key f1
+(integer) 1
+127.0.0.1:6379&gt; hexists key f2
+(integer) 1
+127.0.0.1:6379&gt; hexists key f10
+(integer) 0
+</code></pre>
+<p><font size=5>HDEL</font></p>
+<p>功能：删除hash中的指定字段<br>时间复杂度：$O(1)$<br>返回值：本次操作删除字段的个数</p>
+<pre><code class="language-bash">HDEL key field
+
+127.0.0.1:6379&gt; hdel key f4
+(integer) 1
+</code></pre>
+<p><font size=5>DEL</font></p>
+<p>功能：删除key，删除key所对应的哈希表</p>
+<pre><code class="language-bash">DEL key 
+
+127.0.0.1:6379&gt; del key
+(integer) 1
+</code></pre>
+<p><font size=5>HKEYS</font></p>
+<p>功能：获取hash中所有的字段，会根据key找到对应的hash，然后再遍历hash<br>时间复杂度：$O(N)$，N表示key对应hash表中键值对的数目</p>
+<pre><code class="language-bash">HKEYS key
+
+127.0.0.1:6379&gt; hset key f1 111 f2 222 f3 333 f4 444
+(integer) 4
+127.0.0.1:6379&gt; hkeys key
+1) &quot;f1&quot;
+2) &quot;f2&quot;
+3) &quot;f3&quot;
+4) &quot;f4&quot;
+</code></pre>
+<p><font size=5>HVALUES</font></p>
+<p>功能：能够获取到hash中所有的value</p>
+<pre><code class="language-bash">HVALS key
+
+127.0.0.1:6379&gt; hvals key
+1) &quot;111&quot;
+2) &quot;222&quot;
+3) &quot;333&quot;
+4) &quot;444&quot;
+</code></pre>
+<p><font size=5>HGETALL</font></p>
+<p>功能：获取hash中的所有字段以及对应的值。</p>
+<pre><code class="language-bash">HGETALL key
+
+127.0.0.1:6379&gt; hgetall key
+1) &quot;f1&quot;
+2) &quot;111&quot;
+3) &quot;f2&quot;
+4) &quot;222&quot;
+5) &quot;f3&quot;
+6) &quot;333&quot;
+7) &quot;f4&quot;
+8) &quot;444&quot;
+</code></pre>
+<p><font size=5>HMGET</font></p>
+<p>功能：一次查询多个<code>field</code>，可以减少网络通讯带来的开销</p>
+<pre><code class="language-bash">127.0.0.1:6379&gt; hmget key f1 f2 f3
+1) &quot;342&quot;
+2) &quot;222&quot;
+3) &quot;333&quot;
+</code></pre>
+<p><font size=5>HMSET</font></p>
+<p>功能：一次设置多个<code>field-value</code>键值对，可以减少网络通讯带来的开销。</p>
+<pre><code class="language-bash">127.0.0.1:6379&gt; hmset key f1 f2 f3
+
+127.0.0.1:6379&gt; hmset key f5 555 f6 666
+OK
+127.0.0.1:6379&gt; hgetall key
+ 1) &quot;f1&quot;
+ 2) &quot;342&quot;
+ 3) &quot;f2&quot;
+ 4) &quot;222&quot;
+ 5) &quot;f3&quot;
+ 6) &quot;333&quot;
+ 7) &quot;f4&quot;
+ 8) &quot;444&quot;
+ 9) &quot;f5&quot;
+10) &quot;555&quot;
+11) &quot;f6&quot;
+12) &quot;666&quot;
+</code></pre>
+<p><font size=5>HSCAN</font></p>
+<p><strong>功能</strong>：遍历<code>redis</code>的<code>hash</code>，但是它属于渐进式遍历。敲一次命令，遍历一小部分，再敲一次，再遍历一小部分。执行多次就可以完成整个的遍历过程。</p>
+<pre><code class="language-bash">HSCAN key cursor [MATCH pattern] [COUNT count]
+</code></pre>
+<p>参数：</p>
+<ul>
+<li><code>key</code>：哈希表的键。</li>
+<li><code>cursor</code>：迭代器的游标，初始值为<code>0</code>，表示迭代开始。每次<code>HSCAN</code>命令执行后，都会返回一个新的游标值，用于下一次迭代。</li>
+<li><code>MATCH pattern</code>（可选）：指定一个模式，只有符合模式的字段才会被返回。</li>
+<li><code>COUNT count</code>（可选）：指定每次迭代返回的最大元素数量。</li>
+</ul>
+<p>返回值：<code>HSCAN</code>命令返回两个值：</p>
+<ul>
+<li>字符串形式的游标：用于下一次迭代的游标值。如果返回<code>0</code>，表示迭代完成。</li>
+<li>数组：包含两个元素，第一个元素是一个空数组（表示没有键被删除），第二个元素是一个包含键值对的数组。这些键值对是在当前迭代中返回的元素。</li>
+</ul>
+<pre><code class="language-bash">127.0.0.1:6379&gt; hscan key 0
+1) &quot;0&quot;
+2) 1) &quot;f1&quot;
+   1) &quot;111&quot;
+   2) &quot;f2&quot;
+   3) &quot;222&quot;
+   4) &quot;f3&quot;
+   5) &quot;333&quot;
+   6) &quot;f4&quot;
+   7) &quot;444&quot;
+</code></pre>
+<p><font size=5>HLEN</font></p>
+<p>时间复杂度：$O(1)$<br>功能：获取<code>Hash</code>的个数</p>
+<pre><code class="language-bash">HLEN key
+
+127.0.0.1:6379&gt; hlen key
+(integer) 4
+</code></pre>
+<p><font size=5>HSETNX</font></p>
+<p>功能：设置哈希表键值对，对于不存在的键值对，才能设置成功<br>时间复杂度：$O(1)$</p>
+<pre><code class="language-bash">HSETNX key filed value
+
+127.0.0.1:6379&gt; hsetnx key f5 555
+(integer) 1
+127.0.0.1:6379&gt; hsetnx key f1 111
+(integer) 0
+</code></pre>
+<p><font size=5>HINCRBY</font></p>
+<p>功能：将<code>hash</code>中字段对应的数值添加指定的值。<code>hash</code>这里的<code>value</code>，也可以当做数组处理。<code>hincrby</code>就可以加减整数，<code>hincrbyfloat</code>就可以加减小数。</p>
+<pre><code class="language-bash">127.0.0.1:6379&gt; hincrby key f1 231
+(integer) 342
+127.0.0.1:6379&gt; hgetall key
+ 1) &quot;f1&quot;
+ 2) &quot;342&quot;
+ 3) &quot;f2&quot;
+ 4) &quot;222&quot;
+ 5) &quot;f3&quot;
+ 6) &quot;333&quot;
+ 7) &quot;f4&quot;
+ 8) &quot;444&quot;
+</code></pre>
+<h2 id="命令总结"><a href="#命令总结" class="headerlink" title="命令总结"></a>命令总结</h2><table>
+    <thead>
+        <tr>
+            <th>命令</th>
+            <th>执行效果</th>
+            <th>时间复杂度</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>hset key field value</td>
+            <td>设置值</td>
+            <td>O(1)</td>
+        </tr>
+        <tr>
+            <td>hget key field</td>
+            <td>获取值</td>
+            <td>O(1)</td>
+        </tr>
+        <tr>
+            <td>hset key field [field....]</td>
+            <td>删除field</td>
+            <td>O(k)</td>
+        </tr>
+        <tr>
+            <td>hlen key</td>
+            <td>计算field个数</td>
+            <td>O(1)</td>
+        </tr>
+        <tr>
+            <td>hgetall key</td>
+            <td>获取所有的field-value</td>
+            <td>O(k)</td>
+        </tr>
+        <tr>
+            <td>hmget field [field...]</td>
+            <td>批量获取field-value</td>
+            <td>O(k)</td>
+        </tr>
+        <tr>
+            <td>hmget key field value [field value...]</td>
+            <td>批量获取filed-value</td>
+            <td>O(k)</td>
+        </tr>
+        <tr>
+            <td>hexists key field</td>
+            <td>判断field是否存在</td>
+            <td>O(1)</td>
+        </tr>
+        <tr>
+            <td>hkeys key</td>
+            <td>获取所有的field</td>
+            <td>O(k)</td>
+        </tr>
+        <tr>
+            <td>hvals key</td>
+            <td>获取所有的value</td>
+            <td>O(k)</td>
+        </tr>
+        <tr>
+            <td>hkeys key</td>
+            <td>获取所有的field</td>
+            <td>O(k)</td>
+        </tr>
+        <tr>
+            <td>hsetnx key field value</td>
+            <td>设置值，但必须在field不存在时才能设置成功</td>
+            <td>O(1)</td>
+        </tr>
+        <tr>
+            <td>hincrby key field n</td>
+            <td>对于filed-value + n</td>
+            <td>O(1)</td>
+        </tr>
+        <tr>
+            <td>hincrbyfloat key field n</td>
+            <td>对于filed-value + n</td>
+            <td>O(1)</td>
+        </tr>
+        <tr>
+            <td>hstrlen key field n</td>
+            <td>计算value的字符串长度</td>
+            <td>O(1)</td>
+        </tr>
+    </tbody>
+</table>
+
+<h2 id="内部编码"><a href="#内部编码" class="headerlink" title="内部编码"></a>内部编码</h2><p>哈希的内部编码有两种</p>
+<ul>
+<li><code>ziplist</code>(压缩列表)：当哈希类型元素个数小于<code>hash-max-ziplst-entries</code>配置（默认512个），同时所有值都小于<code>hash-max-ziplist-value</code>配置（默认64字节）时，<code>Redis</code>会使用<code>ziplist</code>作为哈希的内部实现，<code>ziplist</code>使用更加紧凑的结构实现多个元素的连续存储，所以在节省内存方面比<code>hashtable</code>更加优秀。</li>
+<li><code>hashtable</code>(哈希表)：当哈希类型无法满足<code>ziplist</code>的条件时，<code>Redis</code>会使用<code>hashtable</code>作为哈希的内部实现，因此此时<code>ziplist</code>的读写效率会下降，而<code>hashtable</code>的读写时间复杂度为$O(1)$</li>
+</ul>
+<ol>
+<li>如果是哈希中的元素个数较少，使用<code>ziplist</code>表示，元素个数较多，使用<code>hashtable</code>表示</li>
+<li>每个<code>value</code>的值长度都比较短，使用<code>ziplist</code>表示，如果某个<code>value</code>的长度太长了，也会转换成<code>hashtable</code></li>
+</ol>
+<pre><code class="language-bash">127.0.0.1:6379&gt; hset key f1 111
+(integer) 1
+127.0.0.1:6379&gt; object encoding key
+&quot;ziplist&quot;
+127.0.0.1:6379&gt; hset key f2 222222.....22222222222222222222222222222222222222222
+(integer) 1
+127.0.0.1:6379&gt; object encoding key
+&quot;hashtable&quot;
+</code></pre>
+<h2 id="使用场景"><a href="#使用场景" class="headerlink" title="使用场景"></a>使用场景</h2><h3 id="缓存"><a href="#缓存" class="headerlink" title="缓存"></a>缓存</h3><p>下图为关系型数据表记录的两条用户信息，用户的属性表现为表的列，每条用户信息表现为行。</p>
+<p><img src="/2025/04/03/Redis/Redis%20command/Data%20structure/hash/image-1.png" alt="alt text">{: height&#x3D;75%, width&#x3D;75%}</p>
+<p>下图为映射关系表示这两个用户信息。</p>
+<p><img src="/2025/04/03/Redis/Redis%20command/Data%20structure/hash/image-2.png" alt="alt text">{: height&#x3D;75%, width&#x3D;75%}</p>
+<p>上述场景string类型也可以做到，就需要用到json这样的数据格式。但是我们只是想要里面的某一个field，或者修改某个field。就需要把整个json都读出来，解析成对象，操作field，再重写转成json字符串，再写回去。</p>
+<p>如果使用<code>hash</code>方式表示<code>Userinfo</code>，就可以使用field表示对象的某个属性，此时就可以非常方便的修改&#x2F;获取任何一个属性的值了。此方式确实读写<code>field</code>更直观高效，但是要付出空间代价。需要控制哈希在<code>ziplist</code>和<code>hashtable</code>两种内部编码的转换，可能会造成内存的较大消耗。</p>
+<p><font size=5>原生字符串类型</font></p>
+<pre><code class="language-bash">set user:1:name James
+set user:1:age 23
+set user:1:city Beijing
+</code></pre>
+<ul>
+<li>优点：实现简单</li>
+<li>缺点：占用过多的键，内存占用量过大，同时用户信息在Redis中比较分散，减少内聚性，所以这种方案基本没有实用性。</li>
+</ul>
+<p><font size=5>序列化字符串类型</font></p>
+<pre><code class="language-bash">set user:1 经过序列化后的用户对象字符串
+</code></pre>
+<ul>
+<li>优点：针对总是以整体作为操作的信息比较合适，编程也简单。同时，如果序列化方案选择合适，内存的使用效率很高。</li>
+<li>缺点：本身序列化和反序列化需要一定开销，同时如果总是操作个别属性则非常不灵活</li>
+</ul>
+<p><font size=5>哈希类型</font></p>
+<pre><code class="language-bash">hmset user:1 name James age 23 city Beijing
+</code></pre>
+<ul>
+<li>优点：简单、灵活、直观。尤其是针对信息的局部变更或者获取操作。</li>
+<li>缺点：需要控制哈希在ziplist和hashtable两种内部编码的转换，可能会造成内存的较大消耗</li>
+</ul>

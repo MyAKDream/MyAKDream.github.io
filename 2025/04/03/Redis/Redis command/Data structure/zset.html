@@ -1,0 +1,268 @@
+<hr>
+<h2 id="title-有序集合zsetcategories-C-Backend-Redis-Redis-command-Data-structuretags-Redisdate-2025-04-03-00-00-00"><a href="#title-有序集合zsetcategories-C-Backend-Redis-Redis-command-Data-structuretags-Redisdate-2025-04-03-00-00-00" class="headerlink" title="title: 有序集合zsetcategories:  - C++ Backend  - Redis  - Redis command  - Data structuretags:  - Redisdate: 2025-04-03 00:00:00"></a>title: 有序集合zset<br>categories:<br>  - C++ Backend<br>  - Redis<br>  - Redis command<br>  - Data structure<br>tags:<br>  - Redis<br>date: 2025-04-03 00:00:00</h2><h1 id="zset"><a href="#zset" class="headerlink" title="zset"></a>zset</h1><h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><code>zset</code>是有序集合。<code>zset</code>中的<code>member</code>中同时引入了一个属性，分数，浮点类型。每个<code>member</code>都会安排一个分数，进行排序的时候，就是按照此处的分数大小来进行升序降序排序。</p>
+<p><img src="/2025/04/03/Redis/Redis%20command/Data%20structure/zset/image.png" alt="alt text"></p>
+<h2 id="普通命令"><a href="#普通命令" class="headerlink" title="普通命令"></a>普通命令</h2><p><font size=5>ZADD</font></p>
+<p>功能：向有序集合中已经有的元素个数<br>时间复杂度：$O(logN)$</p>
+<pre><code class="language-bash">ZADD key [NX | XX] [GT | LT] [INCR] socore number [score member...]
+
+127.0.0.1:6379&gt; zadd key 99 张三 98 李四 97 王五 96 赵六
+(integer) 4
+127.0.0.1:6379&gt; zrange key 0 -1
+1) &quot;\xe8\xb5\xb5\xe5\x85\xad&quot;
+2) &quot;\xe7\x8e\x8b\xe4\xba\x94&quot;
+3) &quot;\xe6\x9d\x8e\xe5\x9b\x9b&quot;
+4) &quot;\xe5\xbc\xa0\xe4\xb8\x89&quot;
+
+127.0.0.1:6379&gt; zadd key 97 赵六
+0
+127.0.0.1:6379&gt; zrange key 0 -1 withscores
+王五 97
+赵六 97
+李四 98
+张三 99
+
+127.0.0.1:6379&gt; zadd key NX 97 六
+1
+127.0.0.1:6379&gt; zrange key 0 -1 withscores
+六 97 
+王五 97 
+赵六 97
+李四 98
+张三 99
+127.0.0.1:6379&gt; zadd key NX 99 六
+0
+127.0.0.1:6379&gt; zrange key 0 -1 withscores
+六 97
+王五 97
+赵六 97
+李四 98
+张三 99
+
+127.0.0.1:6379&gt; zadd key XX 99 六
+0
+127.0.0.1:6379&gt; zrange key 0 -1 withscores
+王五 97
+赵六 97
+李四 98
+六 99
+张三 99
+
+127.0.0.1:6379&gt; zadd key incr 10 六
+109
+127.0.0.1:6379&gt; zrange key 0 -1 withscores
+王五 97
+赵六 97
+李四 98
+张三 99
+六 109
+</code></pre>
+<p><code>member</code>和<code>score</code>称为是一个<code>pair</code>。对于有序集合来说，我们可以根据<code>member</code>找到<code>score</code>，也可以根据<code>score</code>找到<code>member</code>。</p>
+<ul>
+<li>XX：如果当前<code>member</code>不存在，添加新<code>member</code>；如果当前的<code>member</code>已经存在，此时就会更新<code>member</code>。</li>
+<li>NX：当前<code>member</code>不存在还是不存在，都会添加新<code>member</code>。</li>
+<li>LT：如果新的分数比之前的分数小，此时就更新成功，否则就不更新。</li>
+<li>GT：如果新的分数比之前的分数大，此时就更新成功，否则就不更新。</li>
+<li>INCR：针对现有的元素进行运算。</li>
+</ul>
+<p><font size=5>ZRANGE</font></p>
+<p>功能：查询有序集合中[start,stop]的元素。<br>时间复杂度：$O(logN + M)$，M是start到stop之间的元素个数<br>返回值：区间内元素的列表</p>
+<pre><code class="language-bash">ZRANGE key start stop [withscores]
+
+user@DESKTOP-KFNQORU:~$ redis-cli --raw
+127.0.0.1:6379&gt; zrange key 0 -1
+赵六 王五 李四 张三
+127.0.0.1:6379&gt; zrange key 0 -1 withscores
+赵六 96
+王五 97
+李四 98
+张三 99
+</code></pre>
+<p><font size=5>ZCARD</font></p>
+<p>功能：获取一个zset的基数，即zset中的元素个数<br>时间复杂度：$O(1)$</p>
+<pre><code class="language-bash">ZCARD key
+</code></pre>
+<p><font size=5>ZCOUNT</font></p>
+<p>功能：返回分数在min和max之间的元素个数，默认情况下，min和max都是包含的，可以通过()排除。<br>时间复杂度：$O(logN)$<br>返回值：满足条件的元素列表个数</p>
+<pre><code class="language-bash">ZCOUNT key min max
+
+127.0.0.1:6379&gt; zrange key 0 -1 withscores
+1) &quot;3&quot;
+2) &quot;94&quot;
+3) &quot;1&quot;
+4) &quot;95&quot;
+5) &quot;2&quot;
+6) &quot;96&quot;
+7) &quot;4&quot;
+8) &quot;97&quot;
+127.0.0.1:6379&gt; zcount key (95 (97
+(integer) 1
+127.0.0.1:6379&gt; zcount key 95 97
+(integer) 3
+</code></pre>
+<p><font size=5>ZREVRANGE</font></p>
+<p>功能：逆序遍历打印zset。<br>时间复杂度：$O(logN + M)$，M是start到stop之间的元素个数<br>返回值：区间内元素的列表</p>
+<pre><code class="language-bash">127.0.0.1:6379&gt; zrange key 0 -1 withscores
+1) &quot;3&quot;
+2) &quot;94&quot;
+3) &quot;1&quot;
+4) &quot;95&quot;
+5) &quot;2&quot;
+6) &quot;96&quot;
+7) &quot;4&quot;
+8) &quot;97&quot;
+127.0.0.1:6379&gt; zcount key (95 (97
+(integer) 1
+127.0.0.1:6379&gt; zrevrange key 0 -1 withscores
+1) &quot;4&quot;
+2) &quot;97&quot;
+3) &quot;2&quot;
+4) &quot;96&quot;
+5) &quot;1&quot;
+6) &quot;95&quot;
+7) &quot;3&quot;
+8) &quot;94&quot;
+</code></pre>
+<p><font size=5>ZRANGEBYSCORE</font></p>
+<p>功能：按照分数来找元素的，和ZCOUNT相似。<br>时间复杂度：$O(logN + M)$，M是start到stop之间的元素个数<br>返回值：区间内元素的列表<br>注意：这个功能在之后的redis版本会废弃，功能合并到ZRANGE中。</p>
+<pre><code class="language-bash">ZRANGEBYSCORE key min max [WITHSCORES]
+
+127.0.0.1:6379&gt; ZRANGEBYSCORE key 94 97
+1) &quot;3&quot;
+2) &quot;1&quot;
+3) &quot;2&quot;
+4) &quot;4&quot;
+127.0.0.1:6379&gt; ZRANGEBYSCORE key 94 97 WITHSCORES
+1) &quot;3&quot;
+2) &quot;94&quot;
+3) &quot;1&quot;
+4) &quot;95&quot;
+5) &quot;2&quot;
+6) &quot;96&quot;
+7) &quot;4&quot;
+8) &quot;97&quot;
+</code></pre>
+<h3 id="有序集合的删除指令"><a href="#有序集合的删除指令" class="headerlink" title="有序集合的删除指令"></a>有序集合的删除指令</h3><p><font size=5>ZPOPMAX</font></p>
+<p>功能：删除并返回分数最高的<code>count</code>个元素。如果存在多个元素，分数相同，同时为最大值，<code>zpopmax</code>删的时候，仍然只删除其中一个元素。<br>时间复杂度：$O(logN * M)$ <code>M</code>是被删除元素的个数，<code>N</code>有序集合中的元素个数。<br>返回值：分数和元素列表。</p>
+<pre><code class="language-bash">ZPOPMAX key [count]
+
+127.0.0.1:6379&gt; zpopmax key
+张三 99
+127.0.0.1:6379&gt; zrange key 0 -1 withscores
+赵六 96
+王五 97
+李四 98
+127.0.0.1:6379&gt; zpopmax key 2
+李四 98
+王五 97
+127.0.0.1:6379&gt; zrange key 0 -1 withscores
+赵六 96
+127.0.0.1:6379&gt; zpopmax key
+筑起 99
+127.0.0.1:6379&gt; zrange key 0 -1 withscores
+赵六 96
+王五 97
+李四 98
+张三 99
+</code></pre>
+<p><font size=5>BZPOPMAX</font></p>
+<p>功能：类似于一个阻塞版的优先级队列，每个key都是一个有序集合，阻塞也是在有序集合为空的时候触发阻塞，阻塞到有其他客户端插入元素。timeout表示超时时间，表示超时多久。如果有序集合里面已经有元素了，那么直接返回，不会再阻塞了。<br>时间复杂度：$O(logN)$，在若干个key中只删除一次。</p>
+<pre><code class="language-bash">BZPOPMAX key [key...] timeout
+
+127.0.0.1:6379&gt; zadd key 10 张三
+1
+127.0.0.1:6379&gt; BZPOPMAX key 600
+key
+张三
+10
+</code></pre>
+<p><font size=5>ZPOPMIN</font></p>
+<p>功能：删除集合中最小的元素。<br>时间复杂度：$O(logN)$</p>
+<pre><code class="language-bash">ZPOPMIN key [count]
+
+127.0.0.1:6379&gt; zadd key 10 zhangsan 20 lisi 30 wangwu
+3
+127.0.0.1:6379&gt; zpopmin key 
+zhangsan
+10
+</code></pre>
+<p><font size=5>BZPOPMIN</font></p>
+<p>功能：删除集合中最小的元素。timeout表示超时时间，表示超时多久。如果有序集合里面已经有元素了，那么直接返回，不会再阻塞了。</p>
+<pre><code class="language-bash">BZPOPMIN key [key...] timeout
+
+127.0.0.1:6379&gt; zadd key 10 张三
+1
+127.0.0.1:6379&gt; BZPOPMIN key 600
+key
+张三
+10
+</code></pre>
+<p><font size=5>ZRANK</font></p>
+<p>返回：获取member的下标，正着算<br>时间复杂度：$O(logN)$</p>
+<pre><code class="language-bash">ZRANK key member
+
+127.0.0.1:6379&gt; zadd key 10 zhangsan 20 lisi 30 wangwu 40 zhaouliu
+4
+127.0.0.1:6379&gt; zrank key lisi
+1
+127.0.0.1:6379&gt; zrank key li
+(nil)
+</code></pre>
+<p><font size=5>ZREVRANK</font></p>
+<p>返回：获取member的下标，反着算<br>时间复杂度：$O(logN)$</p>
+<pre><code class="language-bash">ZREVRANK key member
+
+127.0.0.1:6379&gt; zadd key 10 zhangsan 20 lisi 30 wangwu 40 zhaouliu
+4
+127.0.0.1:6379&gt; zrevrank key lisi
+2
+127.0.0.1:6379&gt; zrevrank key li
+(nil)
+</code></pre>
+<p><font size=5>ZSCORE</font></p>
+<p>功能：返回查询元素的分数<br>时间复杂度：O(1)</p>
+<pre><code class="language-bash">127.0.0.1:6379&gt; zscore key lisi
+20
+</code></pre>
+<p><font size=5>ZREM</font></p>
+<p>功能：删除指定元素<br>时间复杂度：$O(logN * M)$。N是集合中的元素个数，M是member参数个数。<br>返回值：本次删除元素的个数</p>
+<pre><code class="language-bash">ZREM key member [member...]
+
+127.0.0.1:6379&gt; zrem key lisi
+1
+</code></pre>
+<p><font size=5>ZREMRANGBYRANK</font></p>
+<p>功能：根据有序集合中的先后顺序范围删除<br>时间复杂度：$O(logN + M)$，N是整个有序集合的元素个数，M是<code>start-stop</code>区间中元素个数<br>返回值：本次删除元素的个数</p>
+<pre><code class="language-bash">zremrangebyrank key start stop
+
+127.0.0.1:6379&gt; zremrangebyrank key 1 2
+2
+</code></pre>
+<p><font size=5>ZREMRANGBYSCORE</font></p>
+<p>功能：根据有序集合的分数范围进行删除。闭区间删除。<br>时间复杂度：$O(logN + M)$<br>返回值：删除的元素member。</p>
+<pre><code class="language-bash">ZREMRANGBYSCORE key min max
+
+zrangebyscore key 20 30
+zhangsan 
+zhaoliu
+</code></pre>
+<p><font size=5>ZINCRBY</font></p>
+<p>功能：为指定的元素关联的分数进行运算,也会同时移动元素位置，保持有序集合仍然是升序的。</p>
+<pre><code class="language-bash">ZINCRBY key increment member
+
+127.0.0.1:6379&gt; zadd key 10 zhangsan 20 lisi 30 wangwu 40 zhaouliu
+4
+127.0.0.1:6379&gt; zincrby key 15 zhangsan
+25
+</code></pre>
+<h3 id="有序集合之间操作"><a href="#有序集合之间操作" class="headerlink" title="有序集合之间操作"></a>有序集合之间操作</h3><p><font size=5>ZINTERSTORE</font></p>
+<pre><code class="language-bash">ZINTERSTORE destination key [key...] [WEIGHTS weight [weight...]] [AGGREGATE &lt;SUM | MIN | MAX&gt;]
+
+</code></pre>
+<h2 id="命令总结"><a href="#命令总结" class="headerlink" title="命令总结"></a>命令总结</h2><tabel>
+    <thead>
+        <tr>
+            <td>数据结构</td>
+            <td>是否允许</td>
+        </tr>
+    </thead>
+</tabel>

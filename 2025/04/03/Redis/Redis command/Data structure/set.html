@@ -1,0 +1,232 @@
+<hr>
+<h2 id="title-无序集合setcategories-C-Backend-Redis-Redis-command-Data-structuretags-Redisdate-2025-04-03-00-00-00"><a href="#title-无序集合setcategories-C-Backend-Redis-Redis-command-Data-structuretags-Redisdate-2025-04-03-00-00-00" class="headerlink" title="title: 无序集合setcategories:  - C++ Backend  - Redis  - Redis command  - Data structuretags:  - Redisdate: 2025-04-03 00:00:00"></a>title: 无序集合set<br>categories:<br>  - C++ Backend<br>  - Redis<br>  - Redis command<br>  - Data structure<br>tags:<br>  - Redis<br>date: 2025-04-03 00:00:00</h2><h1 id="集合"><a href="#集合" class="headerlink" title="集合"></a>集合</h1><h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>集合就是把一些有关联的数据放到一起</p>
+<ol>
+<li>集合中的元素是无序的！</li>
+</ol>
+<blockquote>
+<p><strong>有序</strong>：顺序很重要，变换一下顺序，就是不同的list1了<br><strong>无序</strong>：顺序不重要，变换一下顺序，集合还是那个集合</p>
+</blockquote>
+<ol start="2">
+<li>集合中的元素是不能重复的（唯一的）</li>
+</ol>
+<blockquote>
+<p>和list类似，集合中的每个元素也都是string类型（可以使用json类型的数据格式）</p>
+</blockquote>
+<h2 id="命令"><a href="#命令" class="headerlink" title="命令"></a>命令</h2><h3 id="普通命令"><a href="#普通命令" class="headerlink" title="普通命令"></a>普通命令</h3><p><font size=5>SADD</font> </p>
+<p>功能：将一个或者多个元素添加到set中<br>返回值：本次成功添加的个数<br>时间复杂度：$O(1)$</p>
+<pre><code class="language-bash">SADD key number [member...]
+
+127.0.0.1:6379&gt; sadd key 1 2 3 4
+(integer) 4
+127.0.0.1:6379&gt; sadd key2 1 1 2 3 4
+(integer) 4
+</code></pre>
+<p><font size=5>SMEMBERS</font> </p>
+<p>功能：获取一个set中的所有元素<br>返回值：set中的元素<br>时间复杂度：近似$O(1)$</p>
+<pre><code class="language-bash">SMEMBERS key
+
+127.0.0.1:6379&gt; smembers key
+1) &quot;1&quot;
+2) &quot;2&quot;
+3) &quot;3&quot;
+4) &quot;4&quot;
+</code></pre>
+<p><font size=5>SISMEMBER</font> </p>
+<p>功能：查找集合中元素<br>返回值：不存在，返回0，存在，返回值<br>时间复杂度:$O(1)$</p>
+<pre><code class="language-bash">SISMEMBER key member
+127.0.0.1:6379&gt; sismember key 100
+(integer) 0
+127.0.0.1:6379&gt; sismember key 1
+(integer) 1
+</code></pre>
+<p><font size=5>SPOP</font> </p>
+<p>功能：从set中删除并返回一个或者多个元素。注意，由于set内的元素是无序的，所以取出哪个元素实际上是未定义行为，既可以看做是随机的。<br>时间复杂度：$O(1)$<br>返回值：取出的元素。</p>
+<pre><code class="language-bash">SPOP key [count]
+
+127.0.0.1:6379&gt; sadd key 1 2 3 4
+(integer) 4
+127.0.0.1:6379&gt; spop key
+&quot;2&quot;
+127.0.0.1:6379&gt; spop key
+&quot;4&quot;
+127.0.0.1:6379&gt; spop key
+&quot;3&quot;
+</code></pre>
+<p><font size=5>SRANGEMEMBER</font> </p>
+<p>功能：随机取出set中的元素</p>
+<pre><code class="language-bash">SRANGEMEMBER key [count...]
+
+127.0.0.1:6379&gt; SRANDMEMBER key
+&quot;1&quot;
+127.0.0.1:6379&gt; SRANDMEMBER key
+&quot;1&quot;
+</code></pre>
+<p><font size=5>SMOVE</font> </p>
+<p>功能：将一个元素从source set取出并放入destination set中。<br>时间复杂度：$O(1)$<br>返回值：1表示移动成功，0表示失败</p>
+<pre><code class="language-bash">SMOVE source destination member
+
+127.0.0.1:6379&gt; sadd key2 1 2 3 4
+(integer) 4
+127.0.0.1:6379&gt; sadd key1 5 6 7 8
+(integer) 4
+127.0.0.1:6379&gt; smove key1 key2 1
+(integer) 0
+127.0.0.1:6379&gt; smove key2 key1 1
+(integer) 1
+127.0.0.1:6379&gt; SMEMBERS key1
+1) &quot;1&quot;
+2) &quot;5&quot;
+3) &quot;6&quot;
+4) &quot;7&quot;
+5) &quot;8&quot;
+127.0.0.1:6379&gt; SMEMBERS key2
+1) &quot;2&quot;
+2) &quot;3&quot;
+3) &quot;4&quot;
+</code></pre>
+<p><font size=5>SREM</font> </p>
+<p>功能：将指定的元素从set中删除，一次可以删除一个或者多个member<br>时间复杂度：$O(1)$<br>返回值：本次操作删除的元素个数</p>
+<pre><code class="language-bash">SREM key member [member...]
+
+127.0.0.1:6379&gt; sadd key 1 2 3 4
+(integer) 4
+127.0.0.1:6379&gt; srem key 1
+(integer) 1
+127.0.0.1:6379&gt; srem key 2
+(integer) 1
+</code></pre>
+<h3 id="集合间操作"><a href="#集合间操作" class="headerlink" title="集合间操作"></a>集合间操作</h3><p><font size=5>SINTER</font> </p>
+<p>功能：对两个set取交集。<br>时间复杂度：$O(M * N)$，N是最小的集合元素个数，M是最大的集合元素个数。<br>返回值：最终交集的数据。</p>
+<pre><code class="language-bash">SINTER key [key...]
+
+127.0.0.1:6379&gt; sadd key2 3 4 5 6
+(integer) 4
+127.0.0.1:6379&gt; sadd key 1 2 3 4
+(integer) 4
+127.0.0.1:6379&gt; sinter key key2
+1) &quot;3&quot;
+2) &quot;4&quot;
+</code></pre>
+<p><font size=5>SINTERSTORE</font> </p>
+<p>功能：获取给定set的交集中的元素并保存到目标set中。<br>时间复杂度：$O(N * M)$，N是最小的集合元素个数，M是最大的集合元素个数。<br>返回值：交集的元素个数</p>
+<pre><code class="language-bash">SINTERSTORE destination key [key...]
+
+127.0.0.1:6379&gt; SINTERSTORE key3 key key2
+(integer) 2
+127.0.0.1:6379&gt; smembers key3
+1) &quot;3&quot;
+2) &quot;4&quot;
+</code></pre>
+<p><font size=5>SUNION</font> </p>
+<p>功能：获取给定set的并集中的元素。<br>时间复杂度：$O(N)$，<code>N</code>给定所有集合的总的元素个数。<br>返回值：并集的元素。</p>
+<pre><code class="language-bash">SUNION key [key...]
+
+127.0.0.1:6379&gt; sunion key key2
+1) &quot;1&quot;
+2) &quot;2&quot;
+3) &quot;3&quot;
+4) &quot;4&quot;
+5) &quot;5&quot;
+6) &quot;6&quot;
+</code></pre>
+<p><font size=5>SUNIONSTORE</font> </p>
+<p>功能：获取给定set的并集中的元素并保存到目标set中。<br>时间复杂度：$O(N * M)$，N是最小的集合元素个数，M是最大的集合元素个数。<br>返回值：并集的元素个数。</p>
+<pre><code class="language-bash">SUNIONSTORE destination key [key...]
+
+127.0.0.1:6379&gt; sunion key key2
+1) &quot;1&quot;
+2) &quot;2&quot;
+3) &quot;3&quot;
+4) &quot;4&quot;
+5) &quot;5&quot;
+6) &quot;6&quot;
+</code></pre>
+<p><font size=5>SDIFF</font> </p>
+<p>功能：获取给定set的差集中的元素。<br>时间复杂度：$O(N)$，<code>N</code>给定所有集合的总的元素个数。<br>返回值：差集的元素。</p>
+<pre><code class="language-bash">SDIFF key [key...]
+
+127.0.0.1:6379&gt; sdiff key key2
+1) &quot;1&quot;
+2) &quot;2&quot;
+</code></pre>
+<p><font size=5>SDIFFSTORE</font> </p>
+<p>功能：获取给定set的差集中的元素并保存到目标set中。<br>时间复杂度：$O(N * M)$，N是最小的集合元素个数，M是最大的集合元素个数。<br>返回值：差集的元素个数。</p>
+<pre><code class="language-bash">SDIFFSTORE destination key [key...]
+
+127.0.0.1:6379&gt; SDIFFSTORE key5 key key2
+(integer) 2
+127.0.0.1:6379&gt; smembers key5
+1) &quot;1&quot;
+2) &quot;2&quot;
+</code></pre>
+<h2 id="命令总结"><a href="#命令总结" class="headerlink" title="命令总结"></a>命令总结</h2><table>
+    <thead>
+        <tr>
+            <th>命令</th>
+            <th>时间复杂度</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>sadd key element [element...]</td>
+            <td>O(k)，k元素个数</td>
+        </tr>
+        <tr>
+            <td>srem key element [element...]</td>
+            <td>O(k)，k元素个数</td>
+        </tr>
+        <tr>
+            <td>scard key</td>
+            <td>O(1)</td>
+        </tr>
+        <tr>
+            <td>sismember key element</td>
+            <td>O(1)</td>
+        </tr>
+        <tr>
+            <td>srandmember key [count]</td>
+            <td>O(n)，n是count个数</td>
+        </tr>
+        <tr>
+            <td>spop key [count]</td>
+            <td>O(n)，n是count个数</td>
+        </tr>
+        <tr>
+            <td>sismembers key</td>
+            <td>O(k)，k是元素个数</td>
+        </tr>
+        <tr>
+            <td>sinter key [key...] sitnerstore</td>
+            <td>O(m * k)，k是几个集合中元素最小的个数，m是几个集合中最大的个数</td>
+        </tr>
+        <tr>
+            <td>sunion key [key...] sunionstore</td>
+            <td>O(k)，k是多个集合的元素个数总和</td>
+        </tr>
+        <tr>
+            <td>sdiff key [key...] sdiffstore</td>
+            <td>O(k)，k是多个集合的元素个数总和</td>
+        </tr>
+    </tbody>
+</table>
+
+<h2 id="内部编码"><a href="#内部编码" class="headerlink" title="内部编码"></a>内部编码</h2><ul>
+<li>intest：为了节省空间，做出的特定优化，当元素均为整数，并且元素个数不是很多的时候。</li>
+<li>hashtable：当集合类型无法满足inset的条件时，Redis会使用hashtable作为集合的内部实现</li>
+</ul>
+<ol>
+<li>当元素个数较少并且都为整数时，内部编码为inset</li>
+</ol>
+<pre><code class="language-bash">127.0.0.1:6379&gt; sadd key 1 2 3 4
+(integer) 4
+127.0.0.1:6379&gt; object encoding key
+&quot;intset&quot;
+127.0.0.1:6379&gt; sadd key helloe
+(integer) 1
+127.0.0.1:6379&gt; object encoding key
+&quot;hashtable&quot;
+</code></pre>
+<ol start="2">
+<li>当元素个数超过512个，内部编码为hashtable</li>
+</ol>
+<h2 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h2>

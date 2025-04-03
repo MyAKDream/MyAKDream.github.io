@@ -1,0 +1,291 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>无序集合set | Computer Science</title><meta name="author" content="MyAKDream"><meta name="copyright" content="MyAKDream"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="集合概述集合就是把一些有关联的数据放到一起  集合中的元素是无序的！   有序：顺序很重要，变换一下顺序，就是不同的list1了无序：顺序不重要，变换一下顺序，集合还是那个集合   集合中的元素是不能重复的（唯一的）   和list类似，集合中的每个元素也都是string类型（可以使用json类型的数据格式）  命令普通命令SADD  功能：将一个或者多个元素添加到set中返回值：本次成功添加的个">
+<meta property="og:type" content="article">
+<meta property="og:title" content="无序集合set">
+<meta property="og:url" content="http://myakdream.com/2025/04/03/Redis/Redis%20command/Data%20structure/set/index.html">
+<meta property="og:site_name" content="Computer Science">
+<meta property="og:description" content="集合概述集合就是把一些有关联的数据放到一起  集合中的元素是无序的！   有序：顺序很重要，变换一下顺序，就是不同的list1了无序：顺序不重要，变换一下顺序，集合还是那个集合   集合中的元素是不能重复的（唯一的）   和list类似，集合中的每个元素也都是string类型（可以使用json类型的数据格式）  命令普通命令SADD  功能：将一个或者多个元素添加到set中返回值：本次成功添加的个">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://myakdream.com/img/favicon.jpg">
+<meta property="article:published_time" content="2025-04-02T16:00:00.000Z">
+<meta property="article:modified_time" content="2025-04-03T14:52:12.177Z">
+<meta property="article:author" content="MyAKDream">
+<meta property="article:tag" content="Redis">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://myakdream.com/img/favicon.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "无序集合set",
+  "url": "http://myakdream.com/2025/04/03/Redis/Redis%20command/Data%20structure/set/",
+  "image": "http://myakdream.com/img/favicon.jpg",
+  "datePublished": "2025-04-02T16:00:00.000Z",
+  "dateModified": "2025-04-03T14:52:12.177Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "MyAKDream",
+      "url": "http://myakdream.com/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://myakdream.com/2025/04/03/Redis/Redis%20command/Data%20structure/set/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '无序集合set',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/favicon.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">18</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">3</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">8</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background: linear-gradient(20deg, #0062be, #925696, #cc426e, #fb0347);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Computer Science</span></a><a class="nav-page-title" href="/"><span class="site-name">无序集合set</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">无序集合set</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-04-02T16:00:00.000Z" title="发表于 2025-04-03 00:00:00">2025-04-03</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-04-03T14:52:12.177Z" title="更新于 2025-04-03 22:52:12">2025-04-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/C-Backend/">C++ Backend</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/C-Backend/Redis/">Redis</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/C-Backend/Redis/Redis-command/">Redis command</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/C-Backend/Redis/Redis-command/Data-structure/">Data structure</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="集合"><a href="#集合" class="headerlink" title="集合"></a>集合</h1><h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>集合就是把一些有关联的数据放到一起</p>
+<ol>
+<li>集合中的元素是无序的！</li>
+</ol>
+<blockquote>
+<p><strong>有序</strong>：顺序很重要，变换一下顺序，就是不同的list1了<br><strong>无序</strong>：顺序不重要，变换一下顺序，集合还是那个集合</p>
+</blockquote>
+<ol start="2">
+<li>集合中的元素是不能重复的（唯一的）</li>
+</ol>
+<blockquote>
+<p>和list类似，集合中的每个元素也都是string类型（可以使用json类型的数据格式）</p>
+</blockquote>
+<h2 id="命令"><a href="#命令" class="headerlink" title="命令"></a>命令</h2><h3 id="普通命令"><a href="#普通命令" class="headerlink" title="普通命令"></a>普通命令</h3><p><font size=5>SADD</font> </p>
+<p>功能：将一个或者多个元素添加到set中<br>返回值：本次成功添加的个数<br>时间复杂度：$O(1)$</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">SADD key number [member...]</span><br><span class="line"></span><br><span class="line">127.0.0.1:6379&gt; sadd key 1 2 3 4</span><br><span class="line">(<span class="built_in">integer</span>) 4</span><br><span class="line">127.0.0.1:6379&gt; sadd key2 1 1 2 3 4</span><br><span class="line">(<span class="built_in">integer</span>) 4</span><br></pre></td></tr></table></figure>
+
+<p><font size=5>SMEMBERS</font> </p>
+<p>功能：获取一个set中的所有元素<br>返回值：set中的元素<br>时间复杂度：近似$O(1)$</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">SMEMBERS key</span><br><span class="line"></span><br><span class="line">127.0.0.1:6379&gt; smembers key</span><br><span class="line">1) <span class="string">&quot;1&quot;</span></span><br><span class="line">2) <span class="string">&quot;2&quot;</span></span><br><span class="line">3) <span class="string">&quot;3&quot;</span></span><br><span class="line">4) <span class="string">&quot;4&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><font size=5>SISMEMBER</font> </p>
+<p>功能：查找集合中元素<br>返回值：不存在，返回0，存在，返回值<br>时间复杂度:$O(1)$</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">SISMEMBER key member</span><br><span class="line">127.0.0.1:6379&gt; sismember key 100</span><br><span class="line">(<span class="built_in">integer</span>) 0</span><br><span class="line">127.0.0.1:6379&gt; sismember key 1</span><br><span class="line">(<span class="built_in">integer</span>) 1</span><br></pre></td></tr></table></figure>
+
+<p><font size=5>SPOP</font> </p>
+<p>功能：从set中删除并返回一个或者多个元素。注意，由于set内的元素是无序的，所以取出哪个元素实际上是未定义行为，既可以看做是随机的。<br>时间复杂度：$O(1)$<br>返回值：取出的元素。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">SPOP key [count]</span><br><span class="line"></span><br><span class="line">127.0.0.1:6379&gt; sadd key 1 2 3 4</span><br><span class="line">(<span class="built_in">integer</span>) 4</span><br><span class="line">127.0.0.1:6379&gt; spop key</span><br><span class="line"><span class="string">&quot;2&quot;</span></span><br><span class="line">127.0.0.1:6379&gt; spop key</span><br><span class="line"><span class="string">&quot;4&quot;</span></span><br><span class="line">127.0.0.1:6379&gt; spop key</span><br><span class="line"><span class="string">&quot;3&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><font size=5>SRANGEMEMBER</font> </p>
+<p>功能：随机取出set中的元素</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">SRANGEMEMBER key [count...]</span><br><span class="line"></span><br><span class="line">127.0.0.1:6379&gt; SRANDMEMBER key</span><br><span class="line"><span class="string">&quot;1&quot;</span></span><br><span class="line">127.0.0.1:6379&gt; SRANDMEMBER key</span><br><span class="line"><span class="string">&quot;1&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><font size=5>SMOVE</font> </p>
+<p>功能：将一个元素从source set取出并放入destination set中。<br>时间复杂度：$O(1)$<br>返回值：1表示移动成功，0表示失败</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">SMOVE <span class="built_in">source</span> destination member</span><br><span class="line"></span><br><span class="line">127.0.0.1:6379&gt; sadd key2 1 2 3 4</span><br><span class="line">(<span class="built_in">integer</span>) 4</span><br><span class="line">127.0.0.1:6379&gt; sadd key1 5 6 7 8</span><br><span class="line">(<span class="built_in">integer</span>) 4</span><br><span class="line">127.0.0.1:6379&gt; smove key1 key2 1</span><br><span class="line">(<span class="built_in">integer</span>) 0</span><br><span class="line">127.0.0.1:6379&gt; smove key2 key1 1</span><br><span class="line">(<span class="built_in">integer</span>) 1</span><br><span class="line">127.0.0.1:6379&gt; SMEMBERS key1</span><br><span class="line">1) <span class="string">&quot;1&quot;</span></span><br><span class="line">2) <span class="string">&quot;5&quot;</span></span><br><span class="line">3) <span class="string">&quot;6&quot;</span></span><br><span class="line">4) <span class="string">&quot;7&quot;</span></span><br><span class="line">5) <span class="string">&quot;8&quot;</span></span><br><span class="line">127.0.0.1:6379&gt; SMEMBERS key2</span><br><span class="line">1) <span class="string">&quot;2&quot;</span></span><br><span class="line">2) <span class="string">&quot;3&quot;</span></span><br><span class="line">3) <span class="string">&quot;4&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><font size=5>SREM</font> </p>
+<p>功能：将指定的元素从set中删除，一次可以删除一个或者多个member<br>时间复杂度：$O(1)$<br>返回值：本次操作删除的元素个数</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">SREM key member [member...]</span><br><span class="line"></span><br><span class="line">127.0.0.1:6379&gt; sadd key 1 2 3 4</span><br><span class="line">(<span class="built_in">integer</span>) 4</span><br><span class="line">127.0.0.1:6379&gt; srem key 1</span><br><span class="line">(<span class="built_in">integer</span>) 1</span><br><span class="line">127.0.0.1:6379&gt; srem key 2</span><br><span class="line">(<span class="built_in">integer</span>) 1</span><br></pre></td></tr></table></figure>
+
+<h3 id="集合间操作"><a href="#集合间操作" class="headerlink" title="集合间操作"></a>集合间操作</h3><p><font size=5>SINTER</font> </p>
+<p>功能：对两个set取交集。<br>时间复杂度：$O(M * N)$，N是最小的集合元素个数，M是最大的集合元素个数。<br>返回值：最终交集的数据。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">SINTER key [key...]</span><br><span class="line"></span><br><span class="line">127.0.0.1:6379&gt; sadd key2 3 4 5 6</span><br><span class="line">(<span class="built_in">integer</span>) 4</span><br><span class="line">127.0.0.1:6379&gt; sadd key 1 2 3 4</span><br><span class="line">(<span class="built_in">integer</span>) 4</span><br><span class="line">127.0.0.1:6379&gt; sinter key key2</span><br><span class="line">1) <span class="string">&quot;3&quot;</span></span><br><span class="line">2) <span class="string">&quot;4&quot;</span></span><br></pre></td></tr></table></figure>
+
+
+<p><font size=5>SINTERSTORE</font> </p>
+<p>功能：获取给定set的交集中的元素并保存到目标set中。<br>时间复杂度：$O(N * M)$，N是最小的集合元素个数，M是最大的集合元素个数。<br>返回值：交集的元素个数</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">SINTERSTORE destination key [key...]</span><br><span class="line"></span><br><span class="line">127.0.0.1:6379&gt; SINTERSTORE key3 key key2</span><br><span class="line">(<span class="built_in">integer</span>) 2</span><br><span class="line">127.0.0.1:6379&gt; smembers key3</span><br><span class="line">1) <span class="string">&quot;3&quot;</span></span><br><span class="line">2) <span class="string">&quot;4&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><font size=5>SUNION</font> </p>
+<p>功能：获取给定set的并集中的元素。<br>时间复杂度：$O(N)$，<code>N</code>给定所有集合的总的元素个数。<br>返回值：并集的元素。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">SUNION key [key...]</span><br><span class="line"></span><br><span class="line">127.0.0.1:6379&gt; sunion key key2</span><br><span class="line">1) <span class="string">&quot;1&quot;</span></span><br><span class="line">2) <span class="string">&quot;2&quot;</span></span><br><span class="line">3) <span class="string">&quot;3&quot;</span></span><br><span class="line">4) <span class="string">&quot;4&quot;</span></span><br><span class="line">5) <span class="string">&quot;5&quot;</span></span><br><span class="line">6) <span class="string">&quot;6&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><font size=5>SUNIONSTORE</font> </p>
+<p>功能：获取给定set的并集中的元素并保存到目标set中。<br>时间复杂度：$O(N * M)$，N是最小的集合元素个数，M是最大的集合元素个数。<br>返回值：并集的元素个数。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">SUNIONSTORE destination key [key...]</span><br><span class="line"></span><br><span class="line">127.0.0.1:6379&gt; sunion key key2</span><br><span class="line">1) <span class="string">&quot;1&quot;</span></span><br><span class="line">2) <span class="string">&quot;2&quot;</span></span><br><span class="line">3) <span class="string">&quot;3&quot;</span></span><br><span class="line">4) <span class="string">&quot;4&quot;</span></span><br><span class="line">5) <span class="string">&quot;5&quot;</span></span><br><span class="line">6) <span class="string">&quot;6&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><font size=5>SDIFF</font> </p>
+<p>功能：获取给定set的差集中的元素。<br>时间复杂度：$O(N)$，<code>N</code>给定所有集合的总的元素个数。<br>返回值：差集的元素。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">SDIFF key [key...]</span><br><span class="line"></span><br><span class="line">127.0.0.1:6379&gt; sdiff key key2</span><br><span class="line">1) <span class="string">&quot;1&quot;</span></span><br><span class="line">2) <span class="string">&quot;2&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><font size=5>SDIFFSTORE</font> </p>
+<p>功能：获取给定set的差集中的元素并保存到目标set中。<br>时间复杂度：$O(N * M)$，N是最小的集合元素个数，M是最大的集合元素个数。<br>返回值：差集的元素个数。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">SDIFFSTORE destination key [key...]</span><br><span class="line"></span><br><span class="line">127.0.0.1:6379&gt; SDIFFSTORE key5 key key2</span><br><span class="line">(<span class="built_in">integer</span>) 2</span><br><span class="line">127.0.0.1:6379&gt; smembers key5</span><br><span class="line">1) <span class="string">&quot;1&quot;</span></span><br><span class="line">2) <span class="string">&quot;2&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="命令总结"><a href="#命令总结" class="headerlink" title="命令总结"></a>命令总结</h2><table>
+    <thead>
+        <tr>
+            <th>命令</th>
+            <th>时间复杂度</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>sadd key element [element...]</td>
+            <td>O(k)，k元素个数</td>
+        </tr>
+        <tr>
+            <td>srem key element [element...]</td>
+            <td>O(k)，k元素个数</td>
+        </tr>
+        <tr>
+            <td>scard key</td>
+            <td>O(1)</td>
+        </tr>
+        <tr>
+            <td>sismember key element</td>
+            <td>O(1)</td>
+        </tr>
+        <tr>
+            <td>srandmember key [count]</td>
+            <td>O(n)，n是count个数</td>
+        </tr>
+        <tr>
+            <td>spop key [count]</td>
+            <td>O(n)，n是count个数</td>
+        </tr>
+        <tr>
+            <td>sismembers key</td>
+            <td>O(k)，k是元素个数</td>
+        </tr>
+        <tr>
+            <td>sinter key [key...] sitnerstore</td>
+            <td>O(m * k)，k是几个集合中元素最小的个数，m是几个集合中最大的个数</td>
+        </tr>
+        <tr>
+            <td>sunion key [key...] sunionstore</td>
+            <td>O(k)，k是多个集合的元素个数总和</td>
+        </tr>
+        <tr>
+            <td>sdiff key [key...] sdiffstore</td>
+            <td>O(k)，k是多个集合的元素个数总和</td>
+        </tr>
+    </tbody>
+</table>
+
+<h2 id="内部编码"><a href="#内部编码" class="headerlink" title="内部编码"></a>内部编码</h2><ul>
+<li>intest：为了节省空间，做出的特定优化，当元素均为整数，并且元素个数不是很多的时候。</li>
+<li>hashtable：当集合类型无法满足inset的条件时，Redis会使用hashtable作为集合的内部实现</li>
+</ul>
+<ol>
+<li>当元素个数较少并且都为整数时，内部编码为inset</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; sadd key 1 2 3 4</span><br><span class="line">(<span class="built_in">integer</span>) 4</span><br><span class="line">127.0.0.1:6379&gt; object encoding key</span><br><span class="line"><span class="string">&quot;intset&quot;</span></span><br><span class="line">127.0.0.1:6379&gt; sadd key helloe</span><br><span class="line">(<span class="built_in">integer</span>) 1</span><br><span class="line">127.0.0.1:6379&gt; object encoding key</span><br><span class="line"><span class="string">&quot;hashtable&quot;</span></span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>当元素个数超过512个，内部编码为hashtable</li>
+</ol>
+<h2 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h2></article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://MyAKDream.com">MyAKDream</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://myakdream.com/2025/04/03/Redis/Redis%20command/Data%20structure/set/">http://myakdream.com/2025/04/03/Redis/Redis%20command/Data%20structure/set/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="http://MyAKDream.com" target="_blank">Computer Science</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Redis/">Redis</a></div><div class="post-share"><div class="social-share" data-image="/img/favicon.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/04/03/Redis/Redis%20command/Data%20structure/hash/" title="哈希表hash"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">哈希表hash</div></div><div class="info-2"><div class="info-item-1">hash概述在Redis中，哈希类型是指值本身有是一个键值对结构，形如: 12key = &quot;key&quot;,value = &#123;&#123;field1, value1&#125;, &#123;field2, value2&#125;&#125;     {: height&#x3D;75%, width&#x3D;75%} 注意：哈希类型中的映射关系通常为field-value，用于区分Redis整体的键值对（key-value），注意的是这里的value是指field对应的值，不是键（key）对应的值。 相关命令HSET 功能：设置hash中指定的字段（field）和值（value）时间复杂度：$O(1)$返回值：添加的字段的个数 123456HSET key field value [field value..]127.0.0.1:6379&gt; hset key f1 111(integer) 1127.0.0.1:6379&gt; hset key f2 222 f3 333 f4 444(integer)...</div></div></div></a><a class="pagination-related" href="/2025/04/03/Redis/Redis%20command/Data%20structure/zset/" title="有序集合zset"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">有序集合zset</div></div><div class="info-2"><div class="info-item-1">zset概述zset是有序集合。zset中的member中同时引入了一个属性，分数，浮点类型。每个member都会安排一个分数，进行排序的时候，就是按照此处的分数大小来进行升序降序排序。  普通命令ZADD 功能：向有序集合中已经有的元素个数时间复杂度：$O(logN)$ 12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152ZADD key [NX | XX] [GT | LT] [INCR] socore number [score member...]127.0.0.1:6379&gt; zadd key 99 张三 98 李四 97 王五 96 赵六(integer) 4127.0.0.1:6379&gt; zrange key 0 -11) &quot;\xe8\xb5\xb5\xe5\x85\xad&quot;2) &quot;\xe7\x8e\x8b\xe4\xba\x94&quot;3)...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2025/04/03/Redis/Distributed%20system/" title="分布式系统概述"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-04-03</div><div class="info-item-2">分布式系统概述</div></div><div class="info-2"><div class="info-item-1">...</div></div></div></a><a class="pagination-related" href="/2025/04/03/Redis/Redis%20command/Basic%20command/" title="Redis基本指令"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-04-03</div><div class="info-item-2">Redis基本指令</div></div><div class="info-2"><div class="info-item-1">redis基本指令redis中最核心的两个命令set123456789user@Ubuntu:~$ SET key value [expiration EX seconds | PX milliseconds] [NX|XX]SET key value expiration EX seconds：设置key并设置过期时间（单位是秒）SET key value expiration PX seconds：设置key并设置过期时间（单位是毫秒）[NX|XX]：如果key存在，更新key和value如果key不存在，创建新的键值对，原来的ttl会失效  redis文档给出的语法格式说明：  []相当于一个独立的单元，表示可选项（可有可无的）其中 | 表示 “或者” 的意思，多个只能出现一个。[]和[]之间，是可以同时存在的。  12345678127.0.0.1:6379&gt; set key1 123 ex 10OK127.0.0.1:6379&gt; ttl key1(integer) 6127.0.0.1:6379&gt; ttl key1(integer)...</div></div></div></a><a class="pagination-related" href="/2025/04/03/Redis/Redis%20command/Data%20structure/" title="Redis内部数据结构"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-04-03</div><div class="info-item-2">Redis内部数据结构</div></div><div class="info-2"><div class="info-item-1">Redis数据结构概述  字符串：等同于std::string 哈希：等同于std::unoredered_map 列表：等同于std::vector 集合：等同于std::set 有序集合：等同于std::map  数据结构：redis中hash背后的实现，不一定是一个标准的哈希表。在特定的场景下，使用别的数据结构实现，但是保证时间复杂度符合承诺。编码方式：redis内部底层的实现。redis所有的key都是字符串，value的类型是存在差异的 数据结构和内部编码              数据结构            内部编码          介绍                    string         raw         最基本的字符串（底层就是持有一个char数组）                   int         redis通常也会用来实现一些计数这样的功能，当value就是一个整数的时候此时可能redis会直接使用int来保存                   embstr         针对短字符串进行特殊优化         ...</div></div></div></a><a class="pagination-related" href="/2025/04/03/Redis/Redis%20command/Summarize/" title="Redis指令概述"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-04-03</div><div class="info-item-2">Redis指令概述</div></div><div class="info-2"><div class="info-item-1">redis指令redis服务器指令重启redis服务器 1user@Ubuntu:~$ service redis-server restart  查看redis服务器状态 12345678910111213141516user@Ubuntu:~$ sudo service redis-server status● redis-server.service - Advanced key-value store     Loaded: loaded (/lib/systemd/system/redis-server.service; enabled; vendor preset: enabled)     Active: active (running) since Tue 2024-09-17 19:12:13 CST; 20s ago       Docs: http://redis.io/documentation,             man:redis-server(1)    Process: 14011...</div></div></div></a><a class="pagination-related" href="/2025/04/03/Redis/Redis%20command/Single%20threaded%20model/" title="Redis单线程模型"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-04-03</div><div class="info-item-2">Redis单线程模型</div></div><div class="info-2"><div class="info-item-1">...</div></div></div></a><a class="pagination-related" href="/2025/04/03/Redis/Redis%20command/Data%20structure/hash/" title="哈希表hash"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-04-03</div><div class="info-item-2">哈希表hash</div></div><div class="info-2"><div class="info-item-1">hash概述在Redis中，哈希类型是指值本身有是一个键值对结构，形如: 12key = &quot;key&quot;,value = &#123;&#123;field1, value1&#125;, &#123;field2, value2&#125;&#125;     {: height&#x3D;75%, width&#x3D;75%} 注意：哈希类型中的映射关系通常为field-value，用于区分Redis整体的键值对（key-value），注意的是这里的value是指field对应的值，不是键（key）对应的值。 相关命令HSET 功能：设置hash中指定的字段（field）和值（value）时间复杂度：$O(1)$返回值：添加的字段的个数 123456HSET key field value [field value..]127.0.0.1:6379&gt; hset key f1 111(integer) 1127.0.0.1:6379&gt; hset key f2 222 f3 333 f4 444(integer)...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/favicon.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">MyAKDream</div><div class="author-info-description">Computer Science Note By MyAKDream</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">18</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">3</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">8</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%9B%86%E5%90%88"><span class="toc-number">1.</span> <span class="toc-text">集合</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A6%82%E8%BF%B0"><span class="toc-number">1.1.</span> <span class="toc-text">概述</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%91%BD%E4%BB%A4"><span class="toc-number">1.2.</span> <span class="toc-text">命令</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%99%AE%E9%80%9A%E5%91%BD%E4%BB%A4"><span class="toc-number">1.2.1.</span> <span class="toc-text">普通命令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%9B%86%E5%90%88%E9%97%B4%E6%93%8D%E4%BD%9C"><span class="toc-number">1.2.2.</span> <span class="toc-text">集合间操作</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%91%BD%E4%BB%A4%E6%80%BB%E7%BB%93"><span class="toc-number">1.3.</span> <span class="toc-text">命令总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%85%E9%83%A8%E7%BC%96%E7%A0%81"><span class="toc-number">1.4.</span> <span class="toc-text">内部编码</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">1.5.</span> <span class="toc-text">应用场景</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/04/03/Redis/Distributed%20system/" title="分布式系统概述">分布式系统概述</a><time datetime="2025-04-02T16:00:00.000Z" title="发表于 2025-04-03 00:00:00">2025-04-03</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/04/03/Third%20Party/Etcd/" title="Etcd网络组件">Etcd网络组件</a><time datetime="2025-04-02T16:00:00.000Z" title="发表于 2025-04-03 00:00:00">2025-04-03</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/04/03/Third%20Party/gtests/" title="gtest集成测试组件">gtest集成测试组件</a><time datetime="2025-04-02T16:00:00.000Z" title="发表于 2025-04-03 00:00:00">2025-04-03</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/04/03/Third%20Party/Jsoncpp/" title="jsoncpp json解析组件">jsoncpp json解析组件</a><time datetime="2025-04-02T16:00:00.000Z" title="发表于 2025-04-03 00:00:00">2025-04-03</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/04/03/Third%20Party/spdlog/" title="spdlog日志组件">spdlog日志组件</a><time datetime="2025-04-02T16:00:00.000Z" title="发表于 2025-04-03 00:00:00">2025-04-03</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;2025 By MyAKDream</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.0-b1</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

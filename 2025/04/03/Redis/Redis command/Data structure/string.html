@@ -1,0 +1,191 @@
+<hr>
+<h2 id="title-字符串stringcategories-C-Backend-Redis-Redis-command-Data-structuretags-Redisdate-2025-04-03-00-00-00"><a href="#title-字符串stringcategories-C-Backend-Redis-Redis-command-Data-structuretags-Redisdate-2025-04-03-00-00-00" class="headerlink" title="title: 字符串stringcategories:  - C++ Backend  - Redis  - Redis command  - Data structuretags:  - Redisdate: 2025-04-03 00:00:00"></a>title: 字符串string<br>categories:<br>  - C++ Backend<br>  - Redis<br>  - Redis command<br>  - Data structure<br>tags:<br>  - Redis<br>date: 2025-04-03 00:00:00</h2><h1 id="string"><a href="#string" class="headerlink" title="string"></a>string</h1><h2 id="string类型"><a href="#string类型" class="headerlink" title="string类型"></a>string类型</h2><p><code>Redis</code>中的字符串，直接就是按照二进制数据方式进行存储的！（不会进行任何的编码转换，存的是啥，取出来的就是啥）。<code>Redis</code>对于<code>string</code>类型，限制了大小最大是<code>512M</code>。<code>redis</code>单线程模型，希望进行的操作都能比较迅速。</p>
+<p>可以存储文本数据，整数、普通字符串、JSON、XML、二进制数据（图片，视频、音频）</p>
+<h2 id="相关命令"><a href="#相关命令" class="headerlink" title="相关命令"></a>相关命令</h2><p><font size=5>append</font></p>
+<pre><code class="language-bash">APPEND KEY VALUE：字符串追加字符串
+</code></pre>
+<pre><code class="language-bash">127.0.0.1:6379&gt; set key1 &quot;123&quot;
+OK
+127.0.0.1:6379&gt; append key1 你好
+(integer) 9
+127.0.0.1:6379&gt; get key1
+&quot;123\xe4\xbd\xa0\xe5\xa5\xbd&quot;
+</code></pre>
+<p><code>xshell</code>中断，默认字符编码都是<code>UTF-8</code>，在中断中输入汉字之后，也是按照<code>UTF8</code>编码的，一个汉字在<code>UTF-8</code>字符集中，通常是<code>3</code>个字符。</p>
+<p><font size=5>getrange</font></p>
+<p>功能：返回<code>key</code>对应的闭区间<code>[start, end]</code>的<code>value</code>字符串。start和end也可以为负数-1</p>
+<pre><code class="language-bash">GETRANGE key range start end
+
+127.0.0.1:6379&gt; set key hwlloworld
+OK
+127.0.0.1:6379&gt; getrange key 0 -1
+&quot;hwlloworld&quot;
+127.0.0.1:6379&gt; getrange key 1 -2
+&quot;wlloworl&quot;
+127.0.0.1:6379&gt; set key1 你好
+OK
+127.0.0.1:6379&gt; getrange key1 0 -1
+&quot;\xe4\xbd\xa0\xe5\xa5\xbd&quot;
+127.0.0.1:6379&gt; getrange key1 0 -2
+&quot;\xe4\xbd\xa0\xe5\xa5&quot;
+</code></pre>
+<p><font size=5>setrange</font></p>
+<p>功能：覆盖字符串的一部分，从指定的偏移开始。z<br>注意：插入中文会导致乱码！</p>
+<pre><code class="language-bash">SETRANGE key offset value
+
+127.0.0.1:6379&gt; set key helloworld
+OK
+127.0.0.1:6379&gt; setrange key 1 aaa
+(integer) 10
+127.0.0.1:6379&gt; get key
+&quot;haaaoworld&quot;
+</code></pre>
+<p>当我们向不存在的key中加字符串时，会凭空生成一个0x00字节。将value插到这个0x00后面了。</p>
+<pre><code class="language-bash">127.0.0.1:6379&gt; setrange key2 1 aaa
+(integer) 4
+127.0.0.1:6379&gt; get key2
+&quot;\x00aaa&quot;
+</code></pre>
+<p><font size=5>strlen</font></p>
+<p>获取key对应的string的长度。当key存放的类似不是string时，报错。</p>
+<p>时间复杂度：$O(1)$</p>
+<pre><code class="language-bash">STRLEN key
+
+127.0.0.1:6379&gt; set key &quot;hello world!&quot;
+OK
+127.0.0.1:6379&gt; strlen key
+(integer) 12
+</code></pre>
+<h2 id="内部编码"><a href="#内部编码" class="headerlink" title="内部编码"></a>内部编码</h2><p>字符串类型的内部编码有3中：</p>
+<ol>
+<li>int：8个字节的长整型</li>
+<li>embstr：小于等于39个字节的字符串</li>
+<li>raw：大于39个字节的字符串</li>
+</ol>
+<pre><code class="language-bash">127.0.0.1:6379&gt; object encoding key
+&quot;int&quot;
+127.0.0.1:6379&gt; set key2 hello
+OK
+127.0.0.1:6379&gt; object encoding key2
+&quot;embstr&quot;
+127.0.0.1:6379&gt; set key3 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+OK
+127.0.0.1:6379&gt; object encoding key3
+&quot;raw&quot;
+</code></pre>
+<p>对于某个业务场景，有很多很多的key，类型都是string，但是每个value的string长度都是100左右。字符串使用embstr来存储也不是不能考虑。</p>
+<p>上述效果具体怎么实现？</p>
+<ol>
+<li>先看redis是否提供了对应的配置项，可以修改39这个数字。</li>
+<li>如果没有提供配置型，就需要针对redis源码进行魔改。</li>
+</ol>
+<p>Redis会根据当前值的类型和长度动态决定存储值的类型。</p>
+<pre><code class="language-bash">127.0.0.1:6379&gt; set key4 1.4
+OK
+127.0.0.1:6379&gt; object encoding key4
+&quot;embstr&quot;
+</code></pre>
+<p>redis存储小数，本质上还是当做字符串来存储，这就和整数相比差别就很大了。小数都是使用字符串来存，意味着每次进行算术运算，都需要把字符串转换为小数，进行运算，结果再转回字符串来保存。</p>
+<h2 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h2><h3 id="缓存-Cache-功能"><a href="#缓存-Cache-功能" class="headerlink" title="缓存(Cache)功能"></a>缓存(Cache)功能</h3><p>图中是比较典型的缓存实用场景，其中<code>Redis</code>作为缓冲层，<code>MySQL</code>作为存储层，绝大部分请求都是从<code>Redis</code>中获取。由于<code>Redis</code>具有支撑高并发的特性，所以缓存通常能起到加速读写和降低后端压力的作用。</p>
+<p><img src="/2025/04/03/Redis/Redis%20command/Data%20structure/string/image.png" alt="alt text">{: height&#x3D;75%, width&#x3D;75%}</p>
+<p>整体思路：<br>应用服务器访问数据的时候，先查询<code>Redis</code>。</p>
+<ul>
+<li>如果<code>Redis</code>上的数据存在了，就直接从<code>Redis</code>取数据交给应用服务器。</li>
+<li>如果<code>Redis</code>上数据不存在，在读取<code>MySQL</code>。把读到的结果，返回给应用服务器。同时，把这个数据页写入到<code>Redis</code>中。</li>
+</ul>
+<p>上述策略存在一个明显的问题：<br>随着时间的推移，肯定会有越来越多的<code>key</code>在<code>redis</code>上访问不到。从而从<code>MySQL</code>读取并写入<code>Redis</code>了。此时<code>redis</code>中数据就会越来越多。</p>
+<ol>
+<li>把数据写给<code>redis</code>的同时，给<code>key</code>设置一个过期时间。</li>
+<li><code>Redis</code>也存在内存不足的时候，提供了淘汰策略。</li>
+</ol>
+<h3 id="计数-Count-功能"><a href="#计数-Count-功能" class="headerlink" title="计数(Count)功能"></a>计数(Count)功能</h3><p>很多应用都会使用<code>Redis</code>作为技术工具的计数工具，它可以实现快速计数、查询缓存的功能，同时数据可以异步处理货值落地到其他数据元源。例如视频网站播放次数可以使用<code>Redis</code>完成：用户每播放一次视频，相应的视频播放就会自增<code>1</code>。</p>
+<p><img src="/2025/04/03/Redis/Redis%20command/Data%20structure/string/image-1.png" alt="alt text">{: height&#x3D;75%, width&#x3D;75%}</p>
+<h3 id="Session会话"><a href="#Session会话" class="headerlink" title="Session会话"></a>Session会话</h3><p>一个分布式Web服务器将用户的Session信息（例如用户的登录信息）保存在各自的服务器中，但这样会造成一个问题：出于负载均衡的考虑，分布式服务会将用户的访问请求均衡到不同的服务器上，并且通常无法保证用户每次请求都会被均衡到同一台服务器上，这样当用户刷新一次访问可能发现需要重新登录，这个问题是用户无法容忍的。</p>
+<p><img src="/2025/04/03/Redis/Redis%20command/Data%20structure/string/image-2.png" alt="alt text"></p>
+<p>我们可以使用redis，把所有的会话统一放到redis里面。任何服务器要想访问seesion就要先访问seesion。</p>
+<p><img src="/2025/04/03/Redis/Redis%20command/Data%20structure/string/image-3.png" alt="alt text"></p>
+<h3 id="手机验证码"><a href="#手机验证码" class="headerlink" title="手机验证码"></a>手机验证码</h3><p>很多应用出于安全考虑，会在每次登录时，让用户输入手机号并且配合给手机发送验证码，然后让用户再次输入收到的验证码并进行验证，从而确定是否是用户本人。为了短信接口不会频繁访问，会限制用户每分钟获取验证码的频率：例如一分钟不能成功5次。</p>
+<p><img src="/2025/04/03/Redis/Redis%20command/Data%20structure/string/image-4.png" alt="alt text"></p>
+<ol>
+<li>生成验证码：用户输入一下手机号，点击获取验证码</li>
+<li>检查验证码：把短信收到的验证码这一串数，提交到系统中，系统验证进行验证码是否正确</li>
+</ol>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><table>
+    <thead>
+        <tr>
+            <th>命令</th>
+            <th>执行效果</th>
+            <th>时间复杂度</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>set key value</td>
+            <td>设置key的值</td>
+            <td>O(1)</td>
+        </tr>
+        <tr>
+            <td>del key [key...]</td>
+            <td>删除指定的key</td>
+            <td>O(k)</td>
+        </tr>
+        <tr>
+            <td>meset key value [key value...]</td>
+            <td>批量设置指定的key和value</td>
+            <td>O(k)</td>
+        </tr>
+        <tr>
+            <td>mget key [key...]</td>
+            <td>批量获取key的值</td>
+            <td>O(k)</td>
+        </tr>
+        <tr>
+            <td>incr key</td>
+            <td>指定的key的值+1</td>
+            <td>O(1)</td>
+        </tr>
+        <tr>
+            <td>decr key</td>
+            <td>指定的key的值-1</td>
+            <td>O(1)</td>
+        </tr>
+        <tr>
+            <td>incrby key n</td>
+            <td>指定的key的值+n</td>
+            <td>O(1)</td>
+        </tr>
+        <tr>
+            <td>decrby key -n</td>
+            <td>指定的key的值-n</td>
+            <td>O(1)</td>
+        </tr>
+        <tr>
+            <td>incrbyfloat key n</td>
+            <td>指定的key的值-n</td>
+            <td>O(1)</td>
+        </tr>
+        <tr>
+            <td>append key value</td>
+            <td>指定的key的值追加value</td>
+            <td>O(1)</td>
+        </tr>
+        <tr>
+            <td>strlen key</td>
+            <td>获取指定key的长度</td>
+            <td>O(1)</td>
+        </tr>
+        <tr>
+            <td>setrange key offset value</td>
+            <td>覆盖指定的key的从offset开始的部分值</td>
+            <td>O(n)</td>
+        </tr>
+        <tr>
+            <td>getrange key start end</td>
+            <td>获取指定key的从start到end的部分值</td>
+            <td>O(n)</td>
+        </tr>
+    </tbody>
+</table>
+
+
+
