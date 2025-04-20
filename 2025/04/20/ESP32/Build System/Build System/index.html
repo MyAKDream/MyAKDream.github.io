@@ -1,0 +1,259 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>构建系统 | MyAKDreamのBlog</title><meta name="author" content="MyAKDream"><meta name="copyright" content="MyAKDream"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="构建系统概述一个 ESP-IDF 项目可以看作是多个不同组件的集合，例如一个显示当前湿度的网页服务器会包含以下组件： ESP-IDF 基础库，包括 libc、ROM bindings 等  Wi-Fi 驱动 TCP&#x2F;IP 协议栈 FreeRTOS 操作系统 网页服务器 湿度传感器的驱动 负责将上述组件整合到一起的主程序  ESP-IDF 可以显式地指定和配置每个组件。在构建项目的时候，构">
+<meta property="og:type" content="article">
+<meta property="og:title" content="构建系统">
+<meta property="og:url" content="http://myakdream.com/2025/04/20/ESP32/Build%20System/Build%20System/index.html">
+<meta property="og:site_name" content="MyAKDreamのBlog">
+<meta property="og:description" content="构建系统概述一个 ESP-IDF 项目可以看作是多个不同组件的集合，例如一个显示当前湿度的网页服务器会包含以下组件： ESP-IDF 基础库，包括 libc、ROM bindings 等  Wi-Fi 驱动 TCP&#x2F;IP 协议栈 FreeRTOS 操作系统 网页服务器 湿度传感器的驱动 负责将上述组件整合到一起的主程序  ESP-IDF 可以显式地指定和配置每个组件。在构建项目的时候，构">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://myakdream.com/images/ESP32.png">
+<meta property="article:published_time" content="2025-04-19T16:00:00.000Z">
+<meta property="article:modified_time" content="2025-04-20T11:08:45.016Z">
+<meta property="article:author" content="MyAKDream">
+<meta property="article:tag" content="ESP32">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://myakdream.com/images/ESP32.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "构建系统",
+  "url": "http://myakdream.com/2025/04/20/ESP32/Build%20System/Build%20System/",
+  "image": "http://myakdream.com/images/ESP32.png",
+  "datePublished": "2025-04-19T16:00:00.000Z",
+  "dateModified": "2025-04-20T11:08:45.016Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "MyAKDream",
+      "url": "http://myakdream.com/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://myakdream.com/2025/04/20/ESP32/Build%20System/Build%20System/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '构建系统',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/favicon.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">49</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">10</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">26</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/images/ESP32.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">MyAKDreamのBlog</span></a><a class="nav-page-title" href="/"><span class="site-name">构建系统</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">构建系统</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-04-19T16:00:00.000Z" title="发表于 2025-04-20 00:00:00">2025-04-20</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-04-20T11:08:45.016Z" title="更新于 2025-04-20 19:08:45">2025-04-20</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Embedded-Development/">Embedded Development</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Embedded-Development/ESP32/">ESP32</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Embedded-Development/ESP32/Build-System/">Build System</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="构建系统"><a href="#构建系统" class="headerlink" title="构建系统"></a>构建系统</h1><h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>一个 ESP-IDF 项目可以看作是多个不同组件的集合，例如一个显示当前湿度的网页服务器会包含以下组件：</p>
+<p>ESP-IDF 基础库，包括 libc、ROM bindings 等</p>
+<ul>
+<li>Wi-Fi 驱动</li>
+<li>TCP&#x2F;IP 协议栈</li>
+<li>FreeRTOS 操作系统</li>
+<li>网页服务器</li>
+<li>湿度传感器的驱动</li>
+<li>负责将上述组件整合到一起的主程序</li>
+</ul>
+<p>ESP-IDF 可以显式地指定和配置每个组件。在构建项目的时候，构建系统会前往 ESP-IDF 目录、项目目录和用户自定义组件目录（可选）中查找所有组件，允许用户通过文本菜单系统配置 ESP-IDF 项目中用到的每个组件。在所有组件配置结束后，构建系统开始编译整个项目。</p>
+<h2 id="构建系统使用"><a href="#构建系统使用" class="headerlink" title="构建系统使用"></a>构建系统使用</h2><h3 id="idf-py"><a href="#idf-py" class="headerlink" title="idf.py"></a><code>idf.py</code></h3><p>idf.py 命令行工具提供了一个前端，可以帮助你轻松管理项目的构建过程，它管理了以下工具：</p>
+<ul>
+<li>CMake，配置待构建的项目</li>
+<li>Ninja，用于构建项目</li>
+<li>esptool.py，烧录目标硬件设备</li>
+</ul>
+<p>可通过 idf.py 配置构建系统，具体可参考相关文档。</p>
+<h3 id="直接使用-CMake"><a href="#直接使用-CMake" class="headerlink" title="直接使用 CMake"></a>直接使用 CMake</h3><p>为了方便，idf.py 已经封装了 CMake 命令，但是你愿意，也可以直接调用 CMake。</p>
+<p>当 idf.py 在执行某些操作时，它会打印出其运行的每条命令以便参考。例如运行 idf.py build 命令与在 bash shell（或者 Windows Command Prompt）中运行以下命令是相同的:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> -p build</span><br><span class="line"><span class="built_in">cd</span> build</span><br><span class="line">cmake .. -G Ninja   <span class="comment"># 或者 &#x27;Unix Makefiles&#x27;</span></span><br><span class="line">ninja</span><br></pre></td></tr></table></figure>
+
+<p>在上面的命令列表中，cmake 命令对项目进行配置，并生成用于最终构建工具的构建文件。在这个例子中，最终构建工具是 Ninja: 运行 ninja 来构建项目。</p>
+<p>没有必要多次运行 cmake。第一次构建后，往后每次只需运行 ninja 即可。如果项目需要重新配置，ninja 会自动重新调用 cmake。</p>
+<p>若在 CMake 中使用 ninja 或 make，则多数 idf.py 子命令也会有其对应的目标，例如在构建目录下运行 make menuconfig 或 ninja menuconfig 与运行 idf.py menuconfig 是相同的。</p>
+<h3 id="在-IDE-中使用-CMake"><a href="#在-IDE-中使用-CMake" class="headerlink" title="在 IDE 中使用 CMake"></a>在 IDE 中使用 CMake</h3><p>还可以使用集成了 CMake 的 IDE，仅需将项目 CMakeLists.txt 文件的路径告诉 IDE 即可。集成 CMake 的 IDE 通常会有自己的构建工具（CMake 称之为“生成器”），它是组成 IDE 的一部分，用来构建源文件。</p>
+<p>向 IDE 中添加除 build 目标以外的自定义目标（如添加 “flash” 目标到 IDE）时，建议调用 idf.py 命令来执行这些“特殊”的操作。</p>
+<p>有关将 ESP-IDF 同 CMake 集成到 IDE 中的详细信息，请参阅 构建系统的元数据。</p>
+<h2 id="示例项目"><a href="#示例项目" class="headerlink" title="示例项目"></a>示例项目</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">- myProject/</span><br><span class="line">             - CMakeLists.txt</span><br><span class="line">             - sdkconfig</span><br><span class="line">             - dependencies.lock</span><br><span class="line">             - bootloader_components/ - boot_component/ - CMakeLists.txt</span><br><span class="line">                                                        - Kconfig</span><br><span class="line">                                                        - src1.c</span><br><span class="line">             - components/ - component1/ - CMakeLists.txt</span><br><span class="line">                                         - Kconfig</span><br><span class="line">                                         - src1.c</span><br><span class="line">                           - component2/ - CMakeLists.txt</span><br><span class="line">                                         - Kconfig</span><br><span class="line">                                         - src1.c</span><br><span class="line">                                         - include/ - component2.h</span><br><span class="line">             - managed_components/ - namespace__component-name/ - CMakelists.txt</span><br><span class="line">                                                                - src1.c</span><br><span class="line">                                                                - idf_component.yml</span><br><span class="line">                                                                - include/ - src1.h</span><br><span class="line">             - main/       - CMakeLists.txt</span><br><span class="line">                           - src1.c</span><br><span class="line">                           - src2.c</span><br><span class="line">                           - idf_component.yml</span><br><span class="line">             - build/</span><br></pre></td></tr></table></figure>
+
+<p>顶层项目 <code>CMakeLists.txt</code> 文件，这是 <code>CMake</code> 用于学习如何构建项目的主要文件，可以在这个文件中设置项目全局的 <code>CMake</code> 变量。顶层项目 <code>CMakeLists.txt</code> 文件会导入 <code>/tools/cmake/project.cmake</code> 文件，由它负责实现构建系统的其余部分。该文件最后会设置项目的名称，并定义该项目。</p>
+<ul>
+<li><p>“<code>sdkconfig</code>“ 项目配置文件，执行 <code>idf.py menuconfig</code> 时会创建或更新此文件，文件中保存了项目中所有组件（包括 ESP-IDF 本身）的配置信息。 <code>sdkconfig</code> 文件可能会也可能不会被添加到项目的源码管理系统中。</p>
+</li>
+<li><p>“<code>dependencies.lock</code>“ 文件包含项目中当前使用的所有托管的组件及其版本。使用 <code>IDF</code> 组件管理器添加或更新项目组件时，会自动生成或更新 <code>dependencies.lock</code> 文件。因此，请勿手动编辑此文件！如果项目中没有组件包含 <code>idf_component.yml</code> 文件，则不会创建 <code>dependencies.lock</code> 文件。</p>
+</li>
+<li><p>“<code>idf_component.yml</code>“ 是可选文件，里面包含组件的元数据及其依赖项。<code>IDF</code> 组件管理器使用该文件下载和解析这些依赖项。更多信息，请参阅 <code>idf_component.yml</code>。</p>
+</li>
+<li><p>“<code>bootloader_components</code>“ 是可选目录，里面包含了需要在引导加载项目中进行编译和链接的组件。并不是每个项目都需要这种自定义组件，但此类组件在引导加载程序需要修改以嵌入新功能时可能很有用。</p>
+</li>
+<li><p>“<code>components</code>“ 是可选目录，里面包含了项目的部分自定义组件，并不是每个项目都需要这种自定义组件，但它有助于构建可复用的代码或者导入第三方（不属于 <code>ESP-IDF</code>）的组件。或者，你也可以在顶层 <code>CMakeLists.txt</code> 中设置 <code>EXTRA_COMPONENT_DIRS</code> 变量以查找其他指定位置处的组件。</p>
+</li>
+<li><p>“<code>main</code>“ 目录是一个特殊的组件，它包含项目本身的源代码。”main” 是默认名称，CMake 变量 COMPONENT_DIRS 默认包含此组件，但你可以修改此变量。有关详细信息，请参阅 重命名 main 组件。如果项目中源文件较多，建议将其归于组件中，而不是全部放在 “main” 中。</p>
+</li>
+<li><p>“<code>build</code>“ 目录是存放构建输出的地方，如果没有此目录，idf.py 会自动创建。CMake 会配置项目，并在此目录下生成临时的构建文件。随后，在主构建进程的运行期间，该目录还会保存临时目标文件、库文件以及最终输出的二进制文件。此目录通常不会添加到项目的源码管理系统中，也不会随项目源码一同发布。</p>
+</li>
+<li><p>“<code>managed_components</code>“ 目录由 IDF 组件管理器创建，用于存储由 IDF 组件管理器管理的组件。每个托管组件通常包含 <code>idf_component.yml</code> 清单文件，定义了包括版本和依赖项在内的组件元数据。但对于那些来自 Git 仓库的组件，清单文件是可选的。请勿手动修改 “<code>managed_components</code>“ 目录下的内容。如果需要进行更改，可以将组件复制到 <code>components</code> 目录下。”<code>managed_components</code>“ 目录通常不在 Git 中进行版本控制，也不会与项目源代码一起分发。</p>
+</li>
+</ul>
+<p>每个组件目录都包含一个 <code>CMakeLists.txt</code> 文件，里面会定义一些变量以控制该组件的构建过程，以及其与整个项目的集成。</p>
+<p>每个组件还可以包含一个 <code>Kconfig</code> 文件，它用于定义 <code>menuconfig</code> 时展示的 组件配置 选项。某些组件可能还会包含 <code>Kconfig.projbuild</code> 和 <code>project_include.cmake</code> 特殊文件，它们用于 覆盖项目的部分设置。</p>
+<h2 id="项目-CMakeLists-文件"><a href="#项目-CMakeLists-文件" class="headerlink" title="项目 CMakeLists 文件"></a>项目 CMakeLists 文件</h2><p>每个项目都有一个顶层 CMakeLists.txt 文件，包含整个项目的构建设置。默认情况下，项目 CMakeLists 文件会非常小。</p>
+<h3 id="最小-CMakeLists-文件示例"><a href="#最小-CMakeLists-文件示例" class="headerlink" title="最小 CMakeLists 文件示例"></a>最小 CMakeLists 文件示例</h3><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">cmake_minimum_required</span>(VERSION <span class="number">3.16</span>)</span><br><span class="line"><span class="keyword">include</span>($ENV&#123;IDF_PATH&#125;/tools/cmake/<span class="keyword">project</span>.cmake)</span><br><span class="line"><span class="keyword">project</span>(myProject)</span><br></pre></td></tr></table></figure>
+
+<h3 id="必要部分"><a href="#必要部分" class="headerlink" title="必要部分"></a>必要部分</h3><p>每个项目都要按照上面显示的顺序添加上述三行代码：</p>
+<ul>
+<li><p><code>cmake_minimum_required(VERSION 3.16) </code>必须放在 CMakeLists.txt 文件的第一行，它会告诉 CMake 构建该项目所需要的最小版本号。ESP-IDF 支持 CMake 3.16 或更高的版本。</p>
+</li>
+<li><p><code>include($ENV&#123;IDF_PATH&#125;/tools/cmake/project.cmake)</code> 会导入 CMake 的其余功能来完成配置项目、检索组件等任务。</p>
+</li>
+<li><p><code>project(myProject)</code> 会创建项目本身，并指定项目名称。该名称会作为最终输出的二进制文件的名字，即 myProject.elf 和 myProject.bin。每个 CMakeLists 文件只能定义一个项目。</p>
+</li>
+</ul>
+<h3 id="可选的项目变量"><a href="#可选的项目变量" class="headerlink" title="可选的项目变量"></a>可选的项目变量</h3><p>以下这些变量都有默认值，用户可以覆盖这些变量值以自定义构建行为。更多实现细节，请参阅 <code>/tools/cmake/project.cmake</code> 文件。</p>
+<ul>
+<li><p><code>COMPONENT_DIRS</code>：组件的搜索目录，默认为 <code>IDF_PATH/components</code>、 <code>PROJECT_DIR/components</code>、和 <code>EXTRA_COMPONENT_DIRS</code>。如果你不想在这些位置搜索组件，请覆盖此变量。</p>
+</li>
+<li><p><code>EXTRA_COMPONENT_DIRS</code>：用于搜索组件的其它可选目录列表。路径可以是相对于项目目录的相对路径，也可以是绝对路径。</p>
+</li>
+<li><p><code>COMPONENTS</code>：要构建进项目中的组件名称列表，默认为 <code>COMPONENT_DIRS</code> 目录下检索到的所有组件。使用此变量可以“精简”项目以缩短构建时间。请注意，如果一个组件通过 <code>COMPONENT_REQUIRES</code> 指定了它依赖的另一个组件，则会自动将其添加到 <code>COMPONENTS</code> 中，所以 <code>COMPONENTS</code> 列表可能会非常短。</p>
+</li>
+</ul>
+<p>以上变量中的路径可以是绝对路径，或者是相对于项目目录的相对路径。</p>
+<p><font color='red'>请使用 cmake 中的 set 命令 来设置这些变量，如 set(VARIABLE “VALUE”)。请注意，set() 命令需放在 include(…) 之前，cmake_minimum(…) 之后。</font></p>
+<h2 id="组件-CMakeLists-文件"><a href="#组件-CMakeLists-文件" class="headerlink" title="组件 CMakeLists 文件"></a>组件 CMakeLists 文件</h2><p>每个项目都包含一个或多个组件，这些组件可以是 <code>ESP-IDF</code> 的一部分，可以是项目自身组件目录的一部分，也可以从自定义组件目录添加（见上文）。</p>
+<p>组件是 <code>COMPONENT_DIRS</code> 列表中包含 <code>CMakeLists.txt</code> 文件的任何目录。</p>
+<h3 id="搜索组件"><a href="#搜索组件" class="headerlink" title="搜索组件"></a>搜索组件</h3><p>搜索 <code>COMPONENT_DIRS</code> 中的目录列表以查找项目的组件，此列表中的目录可以是组件自身（即包含<code> CMakeLists.txt</code> 文件的目录），也可以是子目录为组件的顶级目录。</p>
+<p>当 <code>CMake</code> 运行项目配置时，它会记录本次构建包含的组件列表，它可用于调试某些组件的添加&#x2F;排除。</p>
+<p>ESP-IDF 在搜索所有待构建的组件时，会按照以下优先级搜索组件目录（从高到低）：</p>
+<ul>
+<li>项目目录下的组件</li>
+<li><code>EXTRA_COMPONENT_DIRS</code> 中的组件</li>
+<li>项目目录下 <code>managed_components</code> 目录中的组件。这些组件由 <code>IDF Component Manager</code> 下载并管理。</li>
+<li><code>IDF_PATH/components</code> 目录下的组件</li>
+</ul>
+<p>如果有两个及以上同名组件，构建系统会使用优先级更高的组件。这使得我们可以在项目中覆盖 ESP-IDF 提供的组件。只需要复制 ESP-IDF 组件到项目目录下，然后修改它。这样可以在修改组件的同时，不修改 ESP-IDF 的源代码。</p>
+<h3 id="最小组件-CMakeLists-文件"><a href="#最小组件-CMakeLists-文件" class="headerlink" title="最小组件 CMakeLists 文件"></a>最小组件 CMakeLists 文件</h3><p>最小组件 CMakeLists.txt 文件通过使用 idf_component_register 将组件添加到构建系统中。</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">idf_component_register(SRCS <span class="string">&quot;foo.c&quot;</span> <span class="string">&quot;bar.c&quot;</span></span><br><span class="line">INCLUDE_DIRS <span class="string">&quot;include&quot;</span> REQUIRES mbedtls)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>SRCS</code> 是源文件列表（<code>*.c</code>、<code>*.cpp</code>、<code>*.cc</code>、<code>*.S</code>），里面所有的源文件都将会编译进组件库中。</li>
+<li><code>INCLUDE_DIRS</code> 是目录列表，里面的路径会被添加到所有需要该组件的组件（包括 main 组件）全局 include 搜索路径中。</li>
+<li><code>REQUIRES</code> 实际上并不是必需的，但通常需要它来声明该组件需要使用哪些其它组件，请参考 组件依赖。</li>
+</ul>
+<p>上述命令会构建生成与组件同名的库，并最终被链接到应用程序中。</p>
+<p>上述目录通常设置为相对于 <code>CMakeLists.txt</code> 文件的相对路径，当然也可以设置为绝对路径。</p>
+<p>还有其它参数可以传递给 <code>idf_component_register</code>，具体可参考 here。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://MyAKDream.com">MyAKDream</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://myakdream.com/2025/04/20/ESP32/Build%20System/Build%20System/">http://myakdream.com/2025/04/20/ESP32/Build%20System/Build%20System/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="http://MyAKDream.com" target="_blank">MyAKDreamのBlog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/ESP32/">ESP32</a></div><div class="post-share"><div class="social-share" data-image="/images/ESP32.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2025/04/20/Build%20tools/GCC/GCC/" title="GCC"><img class="cover" src="/images/GCC.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">GCC</div></div><div class="info-2"><div class="info-item-1">GCC概述GCC（GNU Compiler Collection）是由 GNU 开发的编程语言编译器。 GCC最初代表GNU C Compiler，当时只支持C语言。 后来又扩展能够支持更多编程语言，包括 C++、Fortran 和 Java 等。 因此，GCC也被重新定义为GNU Compiler Collection，成为历史上最优秀的编译器， 其执行效率与一般的编译器相比平均效率要高 20%~30%。 GCC编译工具链GCC编译工具链（toolchain），是指以GCC编译器为核心的一整套工具。它主要包含以下三部分内容：  gcc-core：即GCC编译器，用于完成预处理和编译过程，把C代码转换成汇编代码。 Binutils ：除GCC编译器外的一系列小工具包括了链接器ld，汇编器as、目标文件格式查看器readelf等。 glibc：包含了主要的C语言标准函数库，C语言中常常使用的打印函数printf、malloc函数就在glibc 库中。  在很多场合下会直接用GCC编译器来指代整套GCC编译工具链。 Binutils工具集Binutils（bin...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/favicon.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">MyAKDream</div><div class="author-info-description">Computer Science Note By MyAKDream</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">49</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">10</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">26</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%9E%84%E5%BB%BA%E7%B3%BB%E7%BB%9F"><span class="toc-number">1.</span> <span class="toc-text">构建系统</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A6%82%E8%BF%B0"><span class="toc-number">1.1.</span> <span class="toc-text">概述</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9E%84%E5%BB%BA%E7%B3%BB%E7%BB%9F%E4%BD%BF%E7%94%A8"><span class="toc-number">1.2.</span> <span class="toc-text">构建系统使用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#idf-py"><span class="toc-number">1.2.1.</span> <span class="toc-text">idf.py</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%9B%B4%E6%8E%A5%E4%BD%BF%E7%94%A8-CMake"><span class="toc-number">1.2.2.</span> <span class="toc-text">直接使用 CMake</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%A8-IDE-%E4%B8%AD%E4%BD%BF%E7%94%A8-CMake"><span class="toc-number">1.2.3.</span> <span class="toc-text">在 IDE 中使用 CMake</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%A4%BA%E4%BE%8B%E9%A1%B9%E7%9B%AE"><span class="toc-number">1.3.</span> <span class="toc-text">示例项目</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%A1%B9%E7%9B%AE-CMakeLists-%E6%96%87%E4%BB%B6"><span class="toc-number">1.4.</span> <span class="toc-text">项目 CMakeLists 文件</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%80%E5%B0%8F-CMakeLists-%E6%96%87%E4%BB%B6%E7%A4%BA%E4%BE%8B"><span class="toc-number">1.4.1.</span> <span class="toc-text">最小 CMakeLists 文件示例</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BF%85%E8%A6%81%E9%83%A8%E5%88%86"><span class="toc-number">1.4.2.</span> <span class="toc-text">必要部分</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%AF%E9%80%89%E7%9A%84%E9%A1%B9%E7%9B%AE%E5%8F%98%E9%87%8F"><span class="toc-number">1.4.3.</span> <span class="toc-text">可选的项目变量</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%84%E4%BB%B6-CMakeLists-%E6%96%87%E4%BB%B6"><span class="toc-number">1.5.</span> <span class="toc-text">组件 CMakeLists 文件</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%90%9C%E7%B4%A2%E7%BB%84%E4%BB%B6"><span class="toc-number">1.5.1.</span> <span class="toc-text">搜索组件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%80%E5%B0%8F%E7%BB%84%E4%BB%B6-CMakeLists-%E6%96%87%E4%BB%B6"><span class="toc-number">1.5.2.</span> <span class="toc-text">最小组件 CMakeLists 文件</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2025/04/20/Build%20tools/Ninja/Ninja/" title="Ninja"><img src="/images/Ninja.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Ninja"/></a><div class="content"><a class="title" href="/2025/04/20/Build%20tools/Ninja/Ninja/" title="Ninja">Ninja</a><time datetime="2025-04-19T16:00:00.000Z" title="发表于 2025-04-20 00:00:00">2025-04-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/04/20/Build%20tools/GCC/GCC/" title="GCC"><img src="/images/GCC.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="GCC"/></a><div class="content"><a class="title" href="/2025/04/20/Build%20tools/GCC/GCC/" title="GCC">GCC</a><time datetime="2025-04-19T16:00:00.000Z" title="发表于 2025-04-20 00:00:00">2025-04-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/04/20/ESP32/Build%20System/Build%20System/" title="构建系统"><img src="/images/ESP32.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="构建系统"/></a><div class="content"><a class="title" href="/2025/04/20/ESP32/Build%20System/Build%20System/" title="构建系统">构建系统</a><time datetime="2025-04-19T16:00:00.000Z" title="发表于 2025-04-20 00:00:00">2025-04-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/04/19/Build%20tools/CMake/CMake/" title="CMake"><img src="/images/CMake.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="CMake"/></a><div class="content"><a class="title" href="/2025/04/19/Build%20tools/CMake/CMake/" title="CMake">CMake</a><time datetime="2025-04-18T16:00:00.000Z" title="发表于 2025-04-19 00:00:00">2025-04-19</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/04/19/Build%20tools/Makefile/Makefile/" title="Makefile"><img src="/images/Makefile.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Makefile"/></a><div class="content"><a class="title" href="/2025/04/19/Build%20tools/Makefile/Makefile/" title="Makefile">Makefile</a><time datetime="2025-04-18T16:00:00.000Z" title="发表于 2025-04-19 00:00:00">2025-04-19</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;2025 By MyAKDream</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.0-b1</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"></div><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/fireworks.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
