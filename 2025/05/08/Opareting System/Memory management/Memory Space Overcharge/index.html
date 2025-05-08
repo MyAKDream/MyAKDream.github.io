@@ -1,0 +1,791 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>内存空间的拓充 | MyAKDreamのBlog</title><meta name="author" content="MyAKDream"><meta name="copyright" content="MyAKDream"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="内存空间的拓充覆盖技术思想：将程序分为多个段（多个模块）。常用的段常驻内存，不常用的段在需要时调入内存。内存中分为一个固定区和若干个覆盖区。  需要常驻内存的段放在固定区中，调入后就不再调出（除非运行结束）。 不常用的段放在覆盖区，需要用到时调入内存，用不到时调出内存。   必须由程序员声明覆盖结构，操作系统完成自动覆盖。缺点：对用户不透明，增加了用户编程负担。覆盖技术只用于早期的操作系统中，现在">
+<meta property="og:type" content="article">
+<meta property="og:title" content="内存空间的拓充">
+<meta property="og:url" content="http://myakdream.com/2025/05/08/Opareting%20System/Memory%20management/Memory%20Space%20Overcharge/index.html">
+<meta property="og:site_name" content="MyAKDreamのBlog">
+<meta property="og:description" content="内存空间的拓充覆盖技术思想：将程序分为多个段（多个模块）。常用的段常驻内存，不常用的段在需要时调入内存。内存中分为一个固定区和若干个覆盖区。  需要常驻内存的段放在固定区中，调入后就不再调出（除非运行结束）。 不常用的段放在覆盖区，需要用到时调入内存，用不到时调出内存。   必须由程序员声明覆盖结构，操作系统完成自动覆盖。缺点：对用户不透明，增加了用户编程负担。覆盖技术只用于早期的操作系统中，现在">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://myakdream.com/images/Opareting-System.png">
+<meta property="article:published_time" content="2025-05-07T16:00:00.000Z">
+<meta property="article:modified_time" content="2025-05-08T12:25:29.459Z">
+<meta property="article:author" content="MyAKDream">
+<meta property="article:tag" content="内存管理">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://myakdream.com/images/Opareting-System.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "内存空间的拓充",
+  "url": "http://myakdream.com/2025/05/08/Opareting%20System/Memory%20management/Memory%20Space%20Overcharge/",
+  "image": "http://myakdream.com/images/Opareting-System.png",
+  "datePublished": "2025-05-07T16:00:00.000Z",
+  "dateModified": "2025-05-08T12:25:29.459Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "MyAKDream",
+      "url": "http://myakdream.com/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://myakdream.com/2025/05/08/Opareting%20System/Memory%20management/Memory%20Space%20Overcharge/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '内存空间的拓充',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/favicon.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">65</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">12</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">30</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/images/Opareting-System.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">MyAKDreamのBlog</span></a><a class="nav-page-title" href="/"><span class="site-name">内存空间的拓充</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">内存空间的拓充</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-05-07T16:00:00.000Z" title="发表于 2025-05-08 00:00:00">2025-05-08</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-05-08T12:25:29.459Z" title="更新于 2025-05-08 20:25:29">2025-05-08</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Computer-Basic/">Computer Basic</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Computer-Basic/Opareting-System/">Opareting System</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Computer-Basic/Opareting-System/Memory-management/">Memory management</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="内存空间的拓充"><a href="#内存空间的拓充" class="headerlink" title="内存空间的拓充"></a>内存空间的拓充</h1><h2 id="覆盖技术"><a href="#覆盖技术" class="headerlink" title="覆盖技术"></a>覆盖技术</h2><p><strong>思想</strong>：将程序分为多个段（多个模块）。常用的段常驻内存，不常用的段在需要时调入内存。内存中分为一个<strong>固定区</strong>和若干个<strong>覆盖区</strong>。</p>
+<ul>
+<li>需要常驻内存的段放在<strong>固定区</strong>中，调入后就不再调出（除非运行结束）。</li>
+<li>不常用的段放在<strong>覆盖区</strong>，需要用到时调入内存，用不到时调出内存。</li>
+</ul>
+<p><img src="/2025/05/08/Opareting%20System/Memory%20management/Memory%20Space%20Overcharge/image.png" alt="alt text"></p>
+<p>必须由程序员声明覆盖结构，操作系统完成自动覆盖。<br><strong>缺点</strong>：对用户不透明，增加了用户编程负担。覆盖技术只用于早期的操作系统中，现在已成为历史。</p>
+<h2 id="交换技术"><a href="#交换技术" class="headerlink" title="交换技术"></a>交换技术</h2><p><strong>思想</strong>：内存空间紧张时，系统将内存中某些进程暂时换出外存，把外存中某些已具备运行条件的进程换入内存（进程在内存与磁盘间动态调度）</p>
+<ul>
+<li>暂时换出外存等待的进程状态为挂起状态（阻塞态，suspend）。</li>
+<li>挂起态又可以进一步分为就绪挂起、阻塞挂起两种状态。</li>
+</ul>
+<p><strong>缺点</strong>：必须由程序员声明覆盖结构，操作系统完成自动覆盖，对用户不透明，增加了用户编程负担。</p>
+<h3 id="应该在外存的什么位置保存被换出的进程？"><a href="#应该在外存的什么位置保存被换出的进程？" class="headerlink" title="应该在外存的什么位置保存被换出的进程？"></a>应该在外存的什么位置保存被换出的进程？</h3><p>具有对换功能的操作系统系统中，通常把磁盘空间分为<strong>文件区</strong>和<strong>对换区</strong>两部分。因此对文件区的管理采用离散分配方式：对换区空间只占磁盘空间的小部分，<strong>被换出的进程数据就存放在对换区</strong>。由于对换的速度直接影响带系统的整体速度，因此对换区空间的管理主要追求换入换出速度，因此通常对换区采用连续分配方式。</p>
+<h3 id="什么时候交换？"><a href="#什么时候交换？" class="headerlink" title="什么时候交换？"></a>什么时候交换？</h3><p>交换通常在许多进程运行且内存吃紧时进行，而系统负荷降低就暂停。</p>
+<h3 id="应该换出哪些进程？"><a href="#应该换出哪些进程？" class="headerlink" title="应该换出哪些进程？"></a>应该换出哪些进程？</h3><p>可优先换出阻塞进程或者优先级低的进程，为了防止优先级低的进程在被调入内存后会很快被换出，有的系统还会考虑进程在内存的驻留时间。</p>
+<p>&#x3D;&#x3D;注意：PCB会常驻内存，不会被换出外存。&#x3D;&#x3D;</p>
+<h2 id="虚拟内存技术"><a href="#虚拟内存技术" class="headerlink" title="虚拟内存技术"></a>虚拟内存技术</h2><h3 id="传统存储管理方式的特征、缺点"><a href="#传统存储管理方式的特征、缺点" class="headerlink" title="传统存储管理方式的特征、缺点"></a>传统存储管理方式的特征、缺点</h3><p>一次性：作业必须一次性全部装入内存后才能开始运行。这会造成两个问题：</p>
+<ul>
+<li>作业很大时，不能全部装入内存，导致大作业无法运行；</li>
+<li>当大量作业要求运行时，由于内存无法容纳所有作业，因此只有少量作业能运行，导致多道程序并发度下降。</li>
+</ul>
+<p>驻留性：一旦作业被装入内存，就会一直驻留在内存中，直至作业运行结束。事实上，在一个时间段内，只需要访问作业的一小部分数据即可正常运行，这就导致了内存中会驻留大量的、暂时用不到的数据，浪费了宝贵的内存资源</p>
+<h3 id="虚拟内存的定义和特征"><a href="#虚拟内存的定义和特征" class="headerlink" title="虚拟内存的定义和特征"></a>虚拟内存的定义和特征</h3><p>基于局部性原理，在程序装入时，可以将程序中<strong>很快用到的部分装入内存，暂时用不到的部分驻留在外存</strong>，可以让程序开始执行。在程序执行过程中，当所访问的信息不在内存时，由操作系统负责将所需信息从外存调入内存，然后继续执行程序。若内存空间不够，由操作系统负责将内存中<strong>暂时用不到的信息换出到外存</strong>。在操作系统的管理下，在用户看来似乎有一个比实际内存大得多的内存，这就是<strong>虚拟内存</strong></p>
+<p>易混知识点：</p>
+<p><font color='red'>虚拟内存的最大容量是由计算机的地址结构（CPU寻址范围）确定的虚拟内存的实际容量 &#x3D; min（内存和外存容量之和，CPU寻址范围）</font></p>
+<p>如：某计算机地址结构为32位，按字节编址，内存大小为512MB，外存大小为2GB。</p>
+<ul>
+<li>虚拟内存的最大容量为 $232B &#x3D; 4GB$</li>
+<li>虚拟内存的实际容量为 $min(232B, 512MB+2GB) &#x3D; 2GB+512MB$</li>
+</ul>
+<p>虚拟内存有一下三个主要特征：</p>
+<ul>
+<li><strong>多次性</strong>：无需在作业运行时一次性全部装入内存，而是允许被分成多次调入内存。</li>
+<li><strong>对换性</strong>：在作业运行时无需一直常驻内存，而是允许在作业运行过程中，将作业换入、换出。</li>
+<li><strong>虚拟性</strong>：从逻辑上扩充了内存的容量，使用户看到的内存容量，远大于实际的容量。</li>
+</ul>
+<h2 id="实现虚拟内存技术"><a href="#实现虚拟内存技术" class="headerlink" title="实现虚拟内存技术"></a>实现虚拟内存技术</h2><p>虚拟内存技术，允许一个作业分多次调入内存。如果采用连续分类方式，会不方便实现。因此，虚拟内存的实现需要尽力在一个离散分配的基础上。</p>
+<p><img src="/2025/05/08/Opareting%20System/Memory%20management/Memory%20Space%20Overcharge/image-1.png" alt="alt text"></p>
+<h3 id="请求分页管理方式"><a href="#请求分页管理方式" class="headerlink" title="请求分页管理方式"></a>请求分页管理方式</h3><p>主要区别：</p>
+<ul>
+<li>在程序执行过程中，当所访问的信息不在内存时，由操作系统负责将所需信息从外存调入内存，然后继续执行程序。操作系统要提供请求调页（或请求调段）功能。</li>
+<li>若内存空间不够，由操作系统负责将内存中暂时用不到的信息换出到外存。操作系统要提供页面置换（或段置换）的功能</li>
+</ul>
+<h4 id="页表机制"><a href="#页表机制" class="headerlink" title="页表机制"></a>页表机制</h4><p>在请求分页管理中，要实现<strong>请求调页</strong>：</p>
+<blockquote>
+<p>操作系统需要知道每个页面是否已经调入内存；如果还没调入，那么也需要知道该页面在外存中存放的位置。</p>
+</blockquote>
+<p>当内存空间不够时，要实现<strong>页面置换</strong>：</p>
+<blockquote>
+<p>操作系统需要通过某些指标来决定到底换出哪个页面；有的页面没有被修改过，就不用再浪费时间写回外存。<br>有的页面修改过，就需要将外存中的旧数据覆盖，因此，操作系统也需要记录各个页面是否被修改的信息。</p>
+</blockquote>
+<p><img src="/2025/05/08/Opareting%20System/Memory%20management/Memory%20Space%20Overcharge/image-2.png" alt="alt text"></p>
+<h4 id="缺页中断机构"><a href="#缺页中断机构" class="headerlink" title="缺页中断机构"></a>缺页中断机构</h4><p>假设此时要访问的逻辑地址 &#x3D; （页号，页内偏移量）&#x3D; (0, 1024)</p>
+<p>在请求分页系统中，每当要访问的<strong>页面不在内存</strong>时，便产生一个<strong>缺页中断</strong>，然后由操作系统缺页<strong>中断服务程序处理中断</strong>。此时缺页的进程进入阻塞态，放到阻塞队列中，调页<strong>完成后再将其唤醒</strong>，放回就绪队列。</p>
+<ul>
+<li>如果内存有<strong>空闲块</strong>，则为进程<strong>分配一个空闲块</strong>，将所缺页面装入该块，并修改页表中相应表项。</li>
+<li>如果内存中<strong>没有空闲块</strong>，则由<strong>页面置换算法选择一个页面淘汰</strong>，若该页面在内存期间<strong>被修改过</strong>，则要将其<strong>写回外存</strong>。未修改过的页面不用写回外存。</li>
+</ul>
+<p>缺页中断是因为当前执行的指令想要访问的目标页面未调入内存而产生的，因此属于内中断一条指令在执行期间，可能产生多次缺页中断。（如：copy A to B，即将逻辑地址A中的数据复制到逻辑地址B，而A、B属于不同的页面，则有可能产生两次中断）</p>
+<p><img src="/2025/05/08/Opareting%20System/Memory%20management/Memory%20Space%20Overcharge/image-3.png" alt="alt text"></p>
+<h4 id="地址变换机构"><a href="#地址变换机构" class="headerlink" title="地址变换机构"></a>地址变换机构</h4><p>和分页存储管理的区别：</p>
+<ul>
+<li>新增步骤1：请求调页（查到页表项时进行判断）</li>
+<li>新增步骤2：页面置换（需要调入页面，但没有空闲内存块时进行）</li>
+<li>新增步骤3：需要修改请求页表中新增的表项</li>
+</ul>
+<p><img src="/2025/05/08/Opareting%20System/Memory%20management/Memory%20Space%20Overcharge/image-4.png" alt="alt text"></p>
+<p>举例：CPU现在要访问一个逻辑地址：</p>
+<ol>
+<li>根据逻辑地址计算出页号，去快表中寻找对应页号，如果快表中找到了对应页号，那么直接转换为物理地址访存。否则，去内存访问页表。</li>
+<li>如果在内存页表找到对应页号，那么直接转换为物理地址访存，同时将对应页表项调入快表。如果快表未满，那么直接调入即可。如果快表已满，那么要根据某些置换算法将快表中的页表项换出。如果没找到，说明对应页号不在内存中，触发缺页中断，让操作系统将其他页面调入内存。</li>
+<li>如果内存已满，根据页面置换算法将页面置换出，否则直接调入新页面。如果被置换的页面已经被修改，那么将改页的内容写回外存。</li>
+<li>操作系统启动IO将页面从外存调入内存，根据物理地址进行访问，同时将对应页表项调入快表。</li>
+</ol>
+<h3 id="页面置换算法"><a href="#页面置换算法" class="headerlink" title="页面置换算法"></a>页面置换算法</h3><h4 id="最佳置换算法"><a href="#最佳置换算法" class="headerlink" title="最佳置换算法"></a>最佳置换算法</h4><p>最佳置换算法（OPT，Optimal）：每次选择淘汰的页面将是以后永不使用，或者在最长时间内不再被访问的页面，这样可以保证最低的缺页率。</p>
+<p>例：假设系统为某进程分配了三个内存块，并考虑到有一下页面号引用串（会依次访问这些页面）：7, 0, 1, 2, 0, 3, 0, 4, 2, 3, 0, 3, 2, 1, 2, 0, 1, 7, 0, 1</p>
+<table>
+    <thead>
+        <tr>
+            <th>访问页面</th>
+            <th>7</th>
+            <th>0</th>
+            <th>1</th>
+            <th>2</th>
+            <th>0</th>
+            <th>3</th>
+            <th>0</th>
+            <th>4</th>
+            <th>2</th>
+            <th>3</th>
+            <th>0</th>
+            <th>3</th>
+            <th>2</th>
+            <th>1</th>
+            <th>2</th>
+            <th>0</th>
+            <th>1</th>
+            <th>7</th>
+            <th>0</th>
+            <th>1</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>内存块1</td>
+            <td>7</td>
+            <td>7</td>
+            <td>7</td>
+            <td>2</td>
+            <td></td>
+            <td>2</td>
+            <td></td>
+            <td>2</td>
+            <td></td>
+            <td></td>
+            <td>2</td>
+            <td></td>
+            <td></td>
+            <td>2</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>7</td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>内存块2</td>
+            <td></td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td></td>
+            <td>0</td>
+            <td></td>
+            <td>4</td>
+            <td></td>
+            <td></td>
+            <td>0</td>
+            <td></td>
+            <td></td>
+            <td>0</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>0</td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>内存块3</td>
+            <td></td>
+            <td></td>
+            <td>1</td>
+            <td>1</td>
+            <td></td>
+            <td>3</td>
+            <td></td>
+            <td>3</td>
+            <td></td>
+            <td></td>
+            <td>3</td>
+            <td></td>
+            <td></td>
+            <td>1</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>1</td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>是否缺页</td>
+            <td>√</td>
+            <td>√</td>
+            <td>√</td>
+            <td>√</td>
+            <td></td>
+            <td>√</td>
+            <td></td>
+            <td>√</td>
+            <td></td>
+            <td></td>
+            <td>√</td>
+            <td></td>
+            <td></td>
+            <td>√</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>√</td>
+            <td></td>
+            <td></td>
+        </tr>
+    </tbody>
+</table>
+
+<p>整个过程缺页中断9次，页面置换放生了6次。注意：缺页时未必发生页面置换。若还有可用的空闲内存块，就不用进行页面置换。</p>
+<p>缺页率：$\frac{9}{20} &#x3D; 45%$</p>
+<p>最佳置换算法可以保证最低的缺页率，但实际上，只有在进程执行的过程中才能知道接下来会访问到的是哪个页面。操作系统无法提前预判页面访问序列。因此，最佳置换算法是无法实现的。</p>
+<h4 id="先进先出置换算法"><a href="#先进先出置换算法" class="headerlink" title="先进先出置换算法"></a>先进先出置换算法</h4><p><strong>先进先出置换算法（FIFO）</strong>：每次选择淘汰的页面是最早进入内存的页面<br><strong>实现方法</strong>：把调入内存的页面根据调入的先后顺序排成一个队列，需要换出页面时选择队头页面即可。队列的最大长度取决于系统为进程分配了多少个内存块。</p>
+<p>例：假设系统为某进程分配了三个内存块，并考虑到有以下页面号引用串：3, 2, 1, 0, 3, 2, 4, 3, 2, 1, 0, 4</p>
+<table>
+    <thead>
+        <tr>
+            <th>访问页面</th>
+            <th>3</th>
+            <th>2</th>
+            <th>1</th>
+            <th>0</th>
+            <th>3</th>
+            <th>2</th>
+            <th>4</th>
+            <th>3</th>
+            <th>2</th>
+            <th>1</th>
+            <th>0</th>
+            <th>4</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>内存块1</td>
+            <td><font color='red'>3</td>
+            <td>3</td>
+            <td>3</td>
+            <td><font color='red'>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td><font color='red'>4</td>
+            <td></td>
+            <td></td>
+            <td>4</td>
+            <td>4</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>内存块2</td>
+            <td></td>
+            <td><font color='red'>2</td>
+            <td>2</td>
+            <td>2</td>
+            <td><font color='red'>3</td>
+            <td>3</td>
+            <td>3</td>
+            <td></td>
+            <td></td>
+            <td><font color='red'>1</td>
+            <td>1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>内存块3</td>
+            <td></td>
+            <td></td>
+            <td><font color='red'>1</td>
+            <td>1</td>
+            <td>1</td>
+            <td><font color='red'>2</td>
+            <td>2</td>
+            <td></td>
+            <td></td>
+            <td>2</td>
+            <td><font color='red'>0</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>是否缺页</td>
+            <td>√</td>
+            <td>√</td>
+            <td>√</td>
+            <td>√</td>
+            <td>√</td>
+            <td>√</td>
+            <td>√</td>
+            <td></td>
+            <td></td>
+            <td>√</td>
+            <td>√</td>
+            <td></td>
+        </tr>
+    </tbody>
+</table>
+
+<p>分配三个内存块时，缺页9次。</p>
+<p>例：假设系统为某进程分配了四个内存块，并考虑到有以下页面号引用串：3, 2, 1, 0, 3, 2, 4, 3, 2, 1, 0, 4</p>
+<table>
+    <thead>
+        <tr>
+            <th>访问页面</th>
+            <th>3</th>
+            <th>2</th>
+            <th>1</th>
+            <th>0</th>
+            <th>3</th>
+            <th>2</th>
+            <th>4</th>
+            <th>3</th>
+            <th>2</th>
+            <th>1</th>
+            <th>0</th>
+            <th>4</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>内存块1</td>
+            <td><font color='red'>3</td>
+            <td>3</td>
+            <td>3</td>
+            <td>3</td>
+            <td></td>
+            <td></td>
+            <td><font color='red'>4</td>
+            <td>4</td>
+            <td>4</td>
+            <td>4</td>
+            <td><font color='red'>0</td>
+            <td>0</td>
+        </tr>
+        <tr>
+            <td>内存块2</td>
+            <td></td>
+            <td><font color='red'>2</td>
+            <td>2</td>
+            <td>2</td>
+            <td></td>
+            <td></td>
+            <td>2</td>
+            <td><font color='red'>3</td>
+            <td>3</td>
+            <td>3</td>
+            <td>3</td>
+            <td><font color='red'>4</td>
+        </tr>
+        <tr>
+            <td>内存块3</td>
+            <td></td>
+            <td></td>
+            <td><font color='red'>1</td>
+            <td>1</td>
+            <td></td>
+            <td></td>
+            <td>1</td>
+            <td>1</td>
+            <td><font color='red'>2</td>
+            <td>2</td>
+            <td>2</td>
+            <td>2</td>
+        </tr>
+        <tr>
+            <td>内存块4</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td><font color='red'>0</td>
+            <td></td>
+            <td></td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td><font color='red'>1</td>
+            <td>1</td>
+            <td>1</td>
+        </tr>
+        <tr>
+            <td>是否缺页</td>
+            <td>√</td>
+            <td>√</td>
+            <td>√</td>
+            <td>√</td>
+            <td></td>
+            <td></td>
+            <td>√</td>
+            <td>√</td>
+            <td>√</td>
+            <td>√</td>
+            <td>√</td>
+            <td>√</td>
+        </tr>
+    </tbody>
+</table>
+
+<p>分配给4个内存块的时候缺页次数10次。</p>
+<p><font color='yellow'>Belady异常——当为进程分配的物理块数增大时，缺页次数不减反增的异常现象。</font></p>
+<p><font color='yellow'>只有 FIFO 算法会产生 Belady 异常。</font>另外，FIFO算法虽然实现简单，但是该算法与进程实际运行时的规律不适应，因为先进入的页面也有可能最经常被访问。因此，算法性能差</p>
+<h4 id="最近最久未使用置换算法"><a href="#最近最久未使用置换算法" class="headerlink" title="最近最久未使用置换算法"></a>最近最久未使用置换算法</h4><p><strong>最近最久未使用置换算法（LRU，least recently used）</strong>：每次淘汰的页面是最近最久未使用的页面</p>
+<p><strong>实现方法</strong>：赋予每个页面对应的页表项中，用访问字段记录该页面自上次被访问以来所经历的时间 t 。当需要淘汰一个页面时，选择现有页面中 t 值最大的，即最近最久未使用的页面。</p>
+<p>例：假设系统为某进程分配了四个内存块，并考虑到有以下页面号引用串为1, 8, 1, 7, 8, 2, 7, 2, 1, 8, 3, 8, 2, 1, 3, 1, 7, 1, 3, 7。</p>
+<table>
+    <thead>
+        <tr>
+            <th>访问页面</th>
+            <th>1</th>
+            <th>8</th>
+            <th>1</th>
+            <th>7</th>
+            <th>8</th>
+            <th>2</th>
+            <th>7</th>
+            <th>2</th>
+            <th>1</th>
+            <th>8</th>
+            <th>3</th>
+            <th>8</th>
+            <th>2</th>
+            <th>1</th>
+            <th>3</th>
+            <th>1</th>
+            <th>7</th>
+            <th>1</th>
+            <th>3</th>
+            <th>7</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>内存块1</td>
+            <td><font color='red'>1</td>
+            <td>1</td>
+            <td></td>
+            <td>1</td>
+            <td></td>
+            <td>1</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>1</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>1</td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>内存块2</td>
+            <td></td>
+            <td><font color='red'>8</td>
+            <td></td>
+            <td>8</td>
+            <td></td>
+            <td>8</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>8</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td><font color='red'>7</td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>内存块3</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td><font color='red'>7</td>
+            <td></td>
+            <td>7</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td><font color='red'>3</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>3</td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>内存块4</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td><font color='red'>2</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>2</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>2</td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>是否缺页</td>
+            <td>√</td>
+            <td>√</td>
+            <td>√</td>
+            <td>√</td>
+            <td></td>
+            <td>√</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>√</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>√</td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+    </tbody>
+</table>
+
+<p>缺点：该算法的实现需要专门的硬件支持，虽然算法性能好，但是实现困难，开销大。</p>
+<p>在手动做题时，若需要淘汰页面，可以逆向检查此时在内存中的几个页面号。在逆向扫描过程中最后一个出现的页号就是要淘汰的页面。</p>
+<h4 id="时钟置换算法"><a href="#时钟置换算法" class="headerlink" title="时钟置换算法"></a>时钟置换算法</h4><p>最佳置换算法性能最好，但无法实现；先进先出置换算法实现简单，但算法性能差；最近最久未使用置换算法性能好，是最接近OPT算法性能的，但是实现起来需要专门的硬件支持，算法开销大。<strong>时钟置换算法</strong>是一种性能和开销较均衡的算法，又称<strong>CLOCK算法</strong>，或<strong>最近未用算法NRU</strong></p>
+<p><strong>简单的CLOCK算法</strong>实现方法：为每个页面设置一个<strong>访问位</strong>，再将内存中的页面都通过<strong>链接指针链接成一个循环队列</strong>。</p>
+<ul>
+<li>当某页被访问时，其访问位置为1。当需要淘汰一个页面时，只需检查页的访问位。</li>
+<li>如果是0，就选择该页换出；如果是1，则将它置为0，暂不换出，继续检查下一个页面，</li>
+<li>若第一轮扫描中所有页面都是1，则将这些页面的访问位依次置为0后，再进行第二轮扫描（第二轮扫描中一定会有访问位为0的页面，因此<strong>简单的CLOCK算法</strong>选择一个淘汰页面<strong>最多会经过两轮扫描</strong>）</li>
+</ul>
+<p><img src="/2025/05/08/Opareting%20System/Memory%20management/Memory%20Space%20Overcharge/image-5.png" alt="alt text"></p>
+<p>例：假设系统为某进程分配了<strong>五个</strong>内存块，并考虑到有以下页面号引用串：1, 3, 4, 2, 5, 6, 3, 4, 7</p>
+<p>开始时循环队列为空：</p>
+<ul>
+<li>访问1号页，扫描循环队列，发现没有1号页面，调入1号页面，将其访问为置为1。循环队列：1号页（1）</li>
+<li>访问3号页，扫描循环队列，发现没有3号页面，调入3号页面，将其访问为置为1。循环队列：1号页（1）-&gt; <strong>3号页（1）</strong></li>
+<li>访问4号页，扫描循环队列，发现没有4号页面，调入4号页面，将其访问为置为1。循环队列：1号页（1）-&gt; 3号页（1）-&gt; <strong>4号页（1）</strong></li>
+<li>访问2号页，扫描循环队列，发现没有2号页面，调入2号页面，将其访问为置为1。循环队列：1号页（1）-&gt; 3号页（1）-&gt; 4号页（1）-&gt; <strong>2号页（1）</strong></li>
+<li>访问5号页，扫描循环队列，发现没有5号页面，调入5号页面，将其访问为置为1。循环队列：1号页（1）-&gt; 3号页（1）-&gt; 4号页（1）-&gt; 2号页（1）-&gt; **5号页（1）**此时循环队列已满。</li>
+<li>访问6号页，循环队列已满，使用CLOCK算法淘汰页面，第一次扫描循环队列，寻找访问位为0的页面换出，将访问位为1的页全部置为0。第二次扫描，发现1号页访问位为0，将1号页换出。将6号页面调入。循环队列：<strong>6号页（1）</strong>-&gt; 3号页（0）-&gt; 4号页（0）-&gt; 2号页（0）-&gt; 5号页（0）。</li>
+<li>访问3号页，发现有3号页面，将3号页面访问位置为1。循环队列：6号页（1）-&gt; <strong>3号页（1）</strong>-&gt; 4号页（0）-&gt; 2号页（0）-&gt; 5号页（0）。</li>
+<li>访问4号页，发现有4号页面，将4号页面访问位置为1。循环队列：6号页（1）-&gt; 3号页（1）-&gt; <strong>4号页（1）</strong>-&gt; 2号页（0）-&gt; 5号页（0）。</li>
+<li>访问7号页，循环队列已满，使用CLOCK算法淘汰页面。第一次扫描循环队列，寻找访问位为0的页面换出，将访问位为1的页全部置为0。将2号页换出，调入7号页面。循环队列：6号页（1）-&gt; 3号页（1）-&gt; 4号页（1）-&gt; <strong>7号页（1）</strong>-&gt; 5号页（0）。</li>
+</ul>
+<h4 id="改进型的时钟置换算法"><a href="#改进型的时钟置换算法" class="headerlink" title="改进型的时钟置换算法"></a>改进型的时钟置换算法</h4><p>简单的时钟置换算法仅考虑到一个页面最近是否被访问过。事实上，如果被淘汰的页面没有被修改过，就不需要执行I&#x2F;O操作写回外存。<strong>只有被淘汰的页面被修改过时，才需要写回外存。</strong><br>因此，除了考虑一个页面最近有没有被访问过之外，操作系统还应考虑页面有没有被修改过。<strong>在其他条件都相同时，应优先淘汰没有修改过的页面</strong>，避免I&#x2F;O操作。这就是改进型的时钟置换算法的思想。<strong>修改位&#x3D;0</strong>，表示页面没有被修改过；<strong>修改位&#x3D;1</strong>，表示页面被修改过。</p>
+<p>为方便讨论，用（访问位，修改位）的形式表示各页面状态。如<code>(1, 1)</code>表示一个页面近期被访问过，且被修改过。</p>
+<p>算法规则：将所有可能被置换的页面排成一个循环队列</p>
+<ul>
+<li>第一轮：从当前位置开始扫描到第一个<code>(0, 0)</code>的帧用于替换。本轮扫描不修改任何标志位。（第一优先级：最近没访问，且没修改的页面）</li>
+<li>第二轮：若第一轮扫描失败，则重新扫描，查找第一个<code>(0, 1)</code>的帧用于替换。本轮将所有扫描过的帧访问位设为<code>0</code>。（第一优先级：最近没访问，但修改过的页面）</li>
+<li>第三轮：若第二轮扫描失败，则重新扫描，查找第一个<code>(0, 0)</code>的帧用于替换。本轮扫描不修改任何标志位。（第一优先级：最近访问过，且没修改的页面）</li>
+<li>第四轮：若第三轮扫描失败，则重新扫描，查找第一个<code>(0, 1)</code>的帧用于替换。（第一优先级：最近访问过，且修改过的页面）</li>
+</ul>
+<p>由于第二轮已将所有帧的访问位设为<code>0</code>，因此经过第三轮、第四轮扫描一定会有一个帧被选中，因此<strong>改进型<code>CLOCK</code>置换算法</strong>选择一个淘汰页面<strong>最多会进行四轮扫描</strong>。</p>
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><p><img src="/2025/05/08/Opareting%20System/Memory%20management/Memory%20Space%20Overcharge/image-6.png" alt="alt text"></p>
+<h3 id="页面分配策略"><a href="#页面分配策略" class="headerlink" title="页面分配策略"></a>页面分配策略</h3><p><strong>驻留集</strong>：指请求分页存储管理中分配给进程的物理块集合。在采用了虚拟存储技术的系统中，驻留集大小一般小于进程的总大小。</p>
+<ul>
+<li>若驻留集太小，会导致缺页频繁，系统要花大量的时间来处理缺页，实际用于进程推进的时间很少；</li>
+<li>若驻留集太大，又会导致多道程序并发度下降，资源利用率降低。</li>
+</ul>
+<p>所以应该选择一个合适的驻留集大小。</p>
+<p><strong>固定分配</strong>：操作系统为每个进程分配一组固定数目的物理块，在进程运行期间不再改变。即，驻留集大小不变。<br><strong>可变分配</strong>：先为每个进程分配一定数目的物理块，在进程运行期间，可根据情况做适当的增加或减少。即，驻留集大小可变。</p>
+<p><strong>局部置换</strong>：发生缺页时只能选进程自己的物理块进行置换。<br><strong>全局置换</strong>：可以将操作系统保留的空闲物理块分配给缺页进程，也可以将别的进程持有的物理块置换到外存，再分配给缺页进程</p>
+<h4 id="页面分配置换策略"><a href="#页面分配置换策略" class="headerlink" title="页面分配置换策略"></a>页面分配置换策略</h4><p><strong>固定分配局部置换</strong>：系统为每个进程分配一定数量的物理块，在整个运行期间都不改变。若进程在运行中发生缺页，则只能从该进程在内存中的页面中选出一页换出，然后再调入需要的页面。</p>
+<p>这种策略的缺点是：很难在刚开始就确定应为每个进程分配多少个物理块才算合理。（采用这种策略的系统可以根据进程大小、优先级、或是根据程序员给出的参数来确定为一个进程分配的内存块数）</p>
+<p><strong>可变分配全局置换</strong>：刚开始会为每个进程分配一定数量的物理块。操作系统会保持一个空闲物理块队列。当某进程发生缺页时，从空闲物理块中取出一块分配给该进程；若已无空闲物理块，则可选择一个<font color='yellow'>未锁定（重要的内核数据可能会被锁定）</font>的页面换出外存，再将该物理块分配给缺页的进程。</p>
+<p>采用这种策略时，只要某进程发生缺页，都将获得新的物理块，仅当空闲物理块用完时，系统才选择一个未锁定的页面调出。被选择调出的页可能是系统中任何一个进程中的页，因此这个被选中的进程拥有的物理块会减少，缺页率会增加。</p>
+<p><strong>可变分配局部置换</strong>：刚开始会为每个进程分配一定数量的物理块。当某进程发生缺页时，只允许从该进程自己的物理块中选出一个进行换出外存。如果进程在运行中频繁地缺页，系统会为该进程多分配几个物理块，直至该进程缺页率趋势适当程度；反之，如果进程在运行中缺页率特别低，则可适当减少分配给该进程的物理块。</p>
+<p><strong>可变分配全局置换</strong>：全局置换意味着一个进程拥有的物理块数量必然会改变，因此不可能是固定分配。此方法不存在。</p>
+<p><strong>可变分配全局置换</strong>：只要缺页就给分配新物理块<br><strong>可变分配局部置换</strong>：要根据发生缺页的频率来动态地增加或减少进程的物理块</p>
+<h4 id="何时调入页面"><a href="#何时调入页面" class="headerlink" title="何时调入页面"></a>何时调入页面</h4><p><strong>预调页策略</strong>：根据局部性原理，一次调入若干个相邻的页面可能比一次调入一个页面更高效。但如果提前调入的页面中大多数都没被访问过，则又是低效的。因此可以预测不久之后可能访问到的页面，将它们预先调入内存，但目前预测成功率只有50%左右。故这种策略<strong>主要用于进程的首次调入</strong>，由程序员指出应该先调入哪些部分。</p>
+<p><strong>请求调页策略</strong>：进程在运行期间<strong>发现缺页时才将所缺页面调入内存</strong>。由这种策略调入的页面一定会被访问到，但由于每次只能调入一页，而每次调页都要磁盘I&#x2F;O操作，因此I&#x2F;O开销较大。</p>
+<img src='image-7.png' width='400'>
+
+<ul>
+<li>系统拥有足够的对换区空间：页面的调入、调出都是在内存与对换区之间进行，这样可以保证页面的调入、调出速度很快。在进程运行前，需将进程相关的数据从文件区复制到对换区。</li>
+<li>系统缺少足够的对换区空间：凡是不会被修改的数据都直接从文件区调入，由于这些页面不会被修改，因此换出时不必写回磁盘，下次需要时再从文件区调入即可。对于可能被修改的部分，换出时需写回磁盘对换区，下次需要时再从对换区调入。</li>
+<li>UNIX 方式：运行之前进程有关的数据全部放在文件区，故未使用过的页面，都可从文件区调入。若被使用过的页面需要换出，则写回对换区，下次需要时从对换区调入。</li>
+</ul>
+<h4 id="抖动颠簸现象"><a href="#抖动颠簸现象" class="headerlink" title="抖动颠簸现象"></a>抖动颠簸现象</h4><p>刚刚换出的页面马上又要换入内存，刚刚换入的页面马上又要换出外存，这种频繁的页面调度行为称为<strong>抖动</strong>，或<strong>颠簸</strong>。<strong>产生抖动的主要原因</strong>是进程频繁访问的页面数目高于可用的物理块数（<strong>分配给进程的物理块不够</strong>）</p>
+<p>为进程分配的物理块太少，会使进程发生抖动现象。为进程分配的物<br>理块太多，又会降低系统整体的并发度，降低某些资源的利用率。</p>
+<h4 id="工作集，驻留集"><a href="#工作集，驻留集" class="headerlink" title="工作集，驻留集"></a>工作集，驻留集</h4><p><strong>驻留集</strong>：指请求分页存储管理中给进程分配的内存块的集合。<br><strong>工作集</strong>：指在某段时间间隔里，进程实际访问页面的集合。</p>
+<hr>
+<p>例：某进程的页面访问序列如下，窗口尺寸为4，各时刻的工作集为？<br>24，15，18，23，24，17，18，24，18，17，17，15。</p>
+<p>工作集：24，15，18，23或者24，18，17。</p>
+<hr>
+<p>工作集大小可能小于窗口尺寸，实际应用中，操作系统可以统计进程的工作集大小，根据工作集大小给进程分配若干内存块。</p>
+<p>如：窗口尺寸为5，经过一段时间的监测发现某进程的工作集最大为3，那么说明该进程有很好的局部性，可以给这个进程分配3个以上的内存块即可满足进程的运行需要。</p>
+<p><font color='yellow'>一般来说，驻留集大小不能小于工作集大小，否则进程运行过程中将频繁缺页。</font></p>
+<p>拓展：基于局部性原理可知，进程在一段时间内访问的页面与不久之后会访问的页面是有相关性的。因此，可以根据进程近期访问的页面集合（工作集）来设计一种页面置换算法——选择一个不在工作集中的页面进行淘汰。操作系统会根据<strong>窗口尺寸</strong>来算出工作集。</p>
+<h3 id="内存映射文件"><a href="#内存映射文件" class="headerlink" title="内存映射文件"></a>内存映射文件</h3><p>内存映射文件——操作系统向上层程序员提供的功能（系统调用）</p>
+<ul>
+<li>方便程序员访问文件数据</li>
+<li>方便多个进程共享同一个文件</li>
+</ul>
+<h4 id="传统文件访问方式"><a href="#传统文件访问方式" class="headerlink" title="传统文件访问方式"></a>传统文件访问方式</h4><ul>
+<li>open 系统调用——打开文件</li>
+<li>seek 系统调用——将读写指针移到某个位置</li>
+<li>read 系统调用——从读写指针所指位置读入若干数据（从磁盘<br>读入内存）</li>
+<li>write 系统调用——将内存中的指定数据，写回磁盘（根据读写<br>指针确定要写回什么位置）</li>
+</ul>
+<h4 id="内存映射文件访问方式"><a href="#内存映射文件访问方式" class="headerlink" title="内存映射文件访问方式"></a>内存映射文件访问方式</h4><ul>
+<li><p>open 系统调用——打开文件</p>
+</li>
+<li><p>mmap 系统调用——将文件映射到进程的虚拟地址空间</p>
+</li>
+<li><p>以访问内存的方式访问文件数据</p>
+</li>
+<li><p>文件数据的读入、写出由操作系统自动完成</p>
+</li>
+<li><p>进程关闭文件时，操作系统自动将文件被修改的数据写回磁盘</p>
+</li>
+</ul>
+<p><img src="/2025/05/08/Opareting%20System/Memory%20management/Memory%20Space%20Overcharge/image-8.png" alt="alt text"></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://MyAKDream.com">MyAKDream</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://myakdream.com/2025/05/08/Opareting%20System/Memory%20management/Memory%20Space%20Overcharge/">http://myakdream.com/2025/05/08/Opareting%20System/Memory%20management/Memory%20Space%20Overcharge/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="http://MyAKDream.com" target="_blank">MyAKDreamのBlog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/">内存管理</a></div><div class="post-share"><div class="social-share" data-image="/images/Opareting-System.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2025/05/07/Opareting%20System/Memory%20management/Memory%20Allocation%20Deallocation/" title="内存空间的分配和回收"><img class="cover" src="/images/Opareting-System.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">内存空间的分配和回收</div></div><div class="info-2"><div class="info-item-1">...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2025/04/30/Opareting%20System/Memory%20management/Summarize/" title="内存概述"><img class="cover" src="/images/Opareting-System.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-04-30</div><div class="info-item-2">内存概述</div></div><div class="info-2"><div class="info-item-1">内存概述内存内存可以存放数据。程序执行前需要先放到内存中才能被CPU处理————缓和CPU和硬盘之间的速度矛盾。 内存编址在多道程序环境下，系统中会有多个程序并发执行，也就是说会有多个程序的数据需要同时放到内存中。那么，如何区分各个程序的数据是放在什么地方的呢？ 我们可以给内存编址    程序运行原理 程序经过编译、链接后生成的指令中指明的是逻辑地址（相对地址），即：相对于进程的起始地址而言的地址。 程序装入内存运行，操作系统会将程序中的逻辑地址转换为物理地址进行装入。   如果将程序调入了其他进程的地址空间中，就会导致内存资源混乱。有三种装入内存的方式。 程序装入绝对装入绝对装入：在编译时，如果知道程序将放到内存中的哪个位置，编译程序将产生绝对地址的目标代码。装入程序按照装入模块中的地址，将程序和数据装入内存。 举例：如果知道装入模块要从地址为 100...</div></div></div></a><a class="pagination-related" href="/2025/05/07/Opareting%20System/Memory%20management/Memory%20Allocation%20Deallocation/" title="内存空间的分配和回收"><img class="cover" src="/images/Opareting-System.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-05-07</div><div class="info-item-2">内存空间的分配和回收</div></div><div class="info-2"><div class="info-item-1">...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/favicon.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">MyAKDream</div><div class="author-info-description">Computer Science Note By MyAKDream</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">65</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">12</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">30</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%86%85%E5%AD%98%E7%A9%BA%E9%97%B4%E7%9A%84%E6%8B%93%E5%85%85"><span class="toc-number">1.</span> <span class="toc-text">内存空间的拓充</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A6%86%E7%9B%96%E6%8A%80%E6%9C%AF"><span class="toc-number">1.1.</span> <span class="toc-text">覆盖技术</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%A4%E6%8D%A2%E6%8A%80%E6%9C%AF"><span class="toc-number">1.2.</span> <span class="toc-text">交换技术</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BA%94%E8%AF%A5%E5%9C%A8%E5%A4%96%E5%AD%98%E7%9A%84%E4%BB%80%E4%B9%88%E4%BD%8D%E7%BD%AE%E4%BF%9D%E5%AD%98%E8%A2%AB%E6%8D%A2%E5%87%BA%E7%9A%84%E8%BF%9B%E7%A8%8B%EF%BC%9F"><span class="toc-number">1.2.1.</span> <span class="toc-text">应该在外存的什么位置保存被换出的进程？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E4%BA%A4%E6%8D%A2%EF%BC%9F"><span class="toc-number">1.2.2.</span> <span class="toc-text">什么时候交换？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BA%94%E8%AF%A5%E6%8D%A2%E5%87%BA%E5%93%AA%E4%BA%9B%E8%BF%9B%E7%A8%8B%EF%BC%9F"><span class="toc-number">1.2.3.</span> <span class="toc-text">应该换出哪些进程？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E6%8A%80%E6%9C%AF"><span class="toc-number">1.3.</span> <span class="toc-text">虚拟内存技术</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BC%A0%E7%BB%9F%E5%AD%98%E5%82%A8%E7%AE%A1%E7%90%86%E6%96%B9%E5%BC%8F%E7%9A%84%E7%89%B9%E5%BE%81%E3%80%81%E7%BC%BA%E7%82%B9"><span class="toc-number">1.3.1.</span> <span class="toc-text">传统存储管理方式的特征、缺点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E7%9A%84%E5%AE%9A%E4%B9%89%E5%92%8C%E7%89%B9%E5%BE%81"><span class="toc-number">1.3.2.</span> <span class="toc-text">虚拟内存的定义和特征</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E6%8A%80%E6%9C%AF"><span class="toc-number">1.4.</span> <span class="toc-text">实现虚拟内存技术</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%B7%E6%B1%82%E5%88%86%E9%A1%B5%E7%AE%A1%E7%90%86%E6%96%B9%E5%BC%8F"><span class="toc-number">1.4.1.</span> <span class="toc-text">请求分页管理方式</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%A1%B5%E8%A1%A8%E6%9C%BA%E5%88%B6"><span class="toc-number">1.4.1.1.</span> <span class="toc-text">页表机制</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%BC%BA%E9%A1%B5%E4%B8%AD%E6%96%AD%E6%9C%BA%E6%9E%84"><span class="toc-number">1.4.1.2.</span> <span class="toc-text">缺页中断机构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9C%B0%E5%9D%80%E5%8F%98%E6%8D%A2%E6%9C%BA%E6%9E%84"><span class="toc-number">1.4.1.3.</span> <span class="toc-text">地址变换机构</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%A1%B5%E9%9D%A2%E7%BD%AE%E6%8D%A2%E7%AE%97%E6%B3%95"><span class="toc-number">1.4.2.</span> <span class="toc-text">页面置换算法</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%9C%80%E4%BD%B3%E7%BD%AE%E6%8D%A2%E7%AE%97%E6%B3%95"><span class="toc-number">1.4.2.1.</span> <span class="toc-text">最佳置换算法</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%88%E8%BF%9B%E5%85%88%E5%87%BA%E7%BD%AE%E6%8D%A2%E7%AE%97%E6%B3%95"><span class="toc-number">1.4.2.2.</span> <span class="toc-text">先进先出置换算法</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%9C%80%E8%BF%91%E6%9C%80%E4%B9%85%E6%9C%AA%E4%BD%BF%E7%94%A8%E7%BD%AE%E6%8D%A2%E7%AE%97%E6%B3%95"><span class="toc-number">1.4.2.3.</span> <span class="toc-text">最近最久未使用置换算法</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%97%B6%E9%92%9F%E7%BD%AE%E6%8D%A2%E7%AE%97%E6%B3%95"><span class="toc-number">1.4.2.4.</span> <span class="toc-text">时钟置换算法</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%94%B9%E8%BF%9B%E5%9E%8B%E7%9A%84%E6%97%B6%E9%92%9F%E7%BD%AE%E6%8D%A2%E7%AE%97%E6%B3%95"><span class="toc-number">1.4.2.5.</span> <span class="toc-text">改进型的时钟置换算法</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.4.2.6.</span> <span class="toc-text">总结</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%A1%B5%E9%9D%A2%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5"><span class="toc-number">1.4.3.</span> <span class="toc-text">页面分配策略</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%A1%B5%E9%9D%A2%E5%88%86%E9%85%8D%E7%BD%AE%E6%8D%A2%E7%AD%96%E7%95%A5"><span class="toc-number">1.4.3.1.</span> <span class="toc-text">页面分配置换策略</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BD%95%E6%97%B6%E8%B0%83%E5%85%A5%E9%A1%B5%E9%9D%A2"><span class="toc-number">1.4.3.2.</span> <span class="toc-text">何时调入页面</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%8A%96%E5%8A%A8%E9%A2%A0%E7%B0%B8%E7%8E%B0%E8%B1%A1"><span class="toc-number">1.4.3.3.</span> <span class="toc-text">抖动颠簸现象</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%B7%A5%E4%BD%9C%E9%9B%86%EF%BC%8C%E9%A9%BB%E7%95%99%E9%9B%86"><span class="toc-number">1.4.3.4.</span> <span class="toc-text">工作集，驻留集</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84%E6%96%87%E4%BB%B6"><span class="toc-number">1.4.4.</span> <span class="toc-text">内存映射文件</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BC%A0%E7%BB%9F%E6%96%87%E4%BB%B6%E8%AE%BF%E9%97%AE%E6%96%B9%E5%BC%8F"><span class="toc-number">1.4.4.1.</span> <span class="toc-text">传统文件访问方式</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84%E6%96%87%E4%BB%B6%E8%AE%BF%E9%97%AE%E6%96%B9%E5%BC%8F"><span class="toc-number">1.4.4.2.</span> <span class="toc-text">内存映射文件访问方式</span></a></li></ol></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2025/05/08/Opareting%20System/Memory%20management/Memory%20Space%20Overcharge/" title="内存空间的拓充"><img src="/images/Opareting-System.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="内存空间的拓充"/></a><div class="content"><a class="title" href="/2025/05/08/Opareting%20System/Memory%20management/Memory%20Space%20Overcharge/" title="内存空间的拓充">内存空间的拓充</a><time datetime="2025-05-07T16:00:00.000Z" title="发表于 2025-05-08 00:00:00">2025-05-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/05/07/Opareting%20System/Memory%20management/Memory%20Allocation%20Deallocation/" title="内存空间的分配和回收"><img src="/images/Opareting-System.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="内存空间的分配和回收"/></a><div class="content"><a class="title" href="/2025/05/07/Opareting%20System/Memory%20management/Memory%20Allocation%20Deallocation/" title="内存空间的分配和回收">内存空间的分配和回收</a><time datetime="2025-05-06T16:00:00.000Z" title="发表于 2025-05-07 00:00:00">2025-05-07</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/04/30/Opareting%20System/Memory%20management/Summarize/" title="内存概述"><img src="/images/Opareting-System.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="内存概述"/></a><div class="content"><a class="title" href="/2025/04/30/Opareting%20System/Memory%20management/Summarize/" title="内存概述">内存概述</a><time datetime="2025-04-29T16:00:00.000Z" title="发表于 2025-04-30 00:00:00">2025-04-30</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/04/29/Opareting%20System/Process%20Management/Thread/" title="线程"><img src="/images/Opareting-System.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="线程"/></a><div class="content"><a class="title" href="/2025/04/29/Opareting%20System/Process%20Management/Thread/" title="线程">线程</a><time datetime="2025-04-28T16:00:00.000Z" title="发表于 2025-04-29 00:00:00">2025-04-29</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/04/29/Opareting%20System/Process%20Management/Management%20Process/" title="管程"><img src="/images/Opareting-System.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="管程"/></a><div class="content"><a class="title" href="/2025/04/29/Opareting%20System/Process%20Management/Management%20Process/" title="管程">管程</a><time datetime="2025-04-28T16:00:00.000Z" title="发表于 2025-04-29 00:00:00">2025-04-29</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;2025 By MyAKDream</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.0-b1</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"></div><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/fireworks.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
