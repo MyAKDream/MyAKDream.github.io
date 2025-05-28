@@ -1,0 +1,331 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>IO软件 | MyAKDreamのBlog</title><meta name="author" content="MyAKDream"><meta name="copyright" content="MyAKDream"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="IO软件IO软件层次结构 设备独立性软件设备独立性软件，又称设备无关性软件。与设备的硬件特性无关的功能几乎都在这一层实现。 这一层实现的功能：  向上层提供统一的调用接口：如write&#x2F;read系统调用  设备的保护：原理类似于文件保护。设备被看做是一种特殊文件，不同用户对各个文件的访问权限是不一样的，同理，对设备的访问权限也不一样。  差错处理：设备独立性软件需要对一些设备的错误进行处理  设备">
+<meta property="og:type" content="article">
+<meta property="og:title" content="IO软件">
+<meta property="og:url" content="http://myakdream.com/2025/05/28/Opareting%20System/IO%20management/IO%20software/index.html">
+<meta property="og:site_name" content="MyAKDreamのBlog">
+<meta property="og:description" content="IO软件IO软件层次结构 设备独立性软件设备独立性软件，又称设备无关性软件。与设备的硬件特性无关的功能几乎都在这一层实现。 这一层实现的功能：  向上层提供统一的调用接口：如write&#x2F;read系统调用  设备的保护：原理类似于文件保护。设备被看做是一种特殊文件，不同用户对各个文件的访问权限是不一样的，同理，对设备的访问权限也不一样。  差错处理：设备独立性软件需要对一些设备的错误进行处理  设备">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://myakdream.com/images/Opareting-System.png">
+<meta property="article:published_time" content="2025-05-27T16:00:00.000Z">
+<meta property="article:modified_time" content="2025-05-28T14:34:19.617Z">
+<meta property="article:author" content="MyAKDream">
+<meta property="article:tag" content="IO管理">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://myakdream.com/images/Opareting-System.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "IO软件",
+  "url": "http://myakdream.com/2025/05/28/Opareting%20System/IO%20management/IO%20software/",
+  "image": "http://myakdream.com/images/Opareting-System.png",
+  "datePublished": "2025-05-27T16:00:00.000Z",
+  "dateModified": "2025-05-28T14:34:19.617Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "MyAKDream",
+      "url": "http://myakdream.com/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://myakdream.com/2025/05/28/Opareting%20System/IO%20management/IO%20software/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'IO软件',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/favicon.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">72</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">31</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/images/Opareting-System.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">MyAKDreamのBlog</span></a><a class="nav-page-title" href="/"><span class="site-name">IO软件</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">IO软件</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-05-27T16:00:00.000Z" title="发表于 2025-05-28 00:00:00">2025-05-28</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-05-28T14:34:19.617Z" title="更新于 2025-05-28 22:34:19">2025-05-28</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Computer-Basic/">Computer Basic</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Computer-Basic/Opareting-System/">Opareting System</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Computer-Basic/Opareting-System/File-System/">File System</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="IO软件"><a href="#IO软件" class="headerlink" title="IO软件"></a>IO软件</h1><h2 id="IO软件层次结构"><a href="#IO软件层次结构" class="headerlink" title="IO软件层次结构"></a>IO软件层次结构</h2><p><img src="/2025/05/28/Opareting%20System/IO%20management/IO%20software/image.png" alt="alt text"></p>
+<h3 id="设备独立性软件"><a href="#设备独立性软件" class="headerlink" title="设备独立性软件"></a>设备独立性软件</h3><p>设备独立性软件，又称设备无关性软件。与设备的硬件特性无关的功能几乎都在这一层实现。</p>
+<p>这一层实现的功能：</p>
+<ol>
+<li><p><strong>向上层提供统一的调用接口</strong>：如<code>write/read</code>系统调用</p>
+</li>
+<li><p><strong>设备的保护</strong>：原理类似于文件保护。设备被看做是一种特殊文件，不同用户对各个文件的访问权限是不一样的，同理，对设备的访问权限也不一样。</p>
+</li>
+<li><p><strong>差错处理</strong>：设备独立性软件需要对一些设备的错误进行处理</p>
+</li>
+<li><p>设备的分配和回收</p>
+</li>
+<li><p><strong>数据缓冲区管理</strong>：可以通过缓冲技术屏蔽设备之间数据单位大小的传输速度的差异。</p>
+</li>
+<li><p><strong>建立逻辑设备名到物理设备名的映射关系；根据设备类型选择调用相应的驱动程序</strong>：用户或用户层软件发出I&#x2F;O操作相关系统调用的系统调用时，需要指明此次要操作的I&#x2F;O设备的逻辑设备名。设备独立性软件需要通过**逻辑设备表(LUT，Logical UnitTable)**来确定逻辑设备对应的物理设备，并找到该设备对应的设备驱动程序</p>
+</li>
+</ol>
+<p><img src="/2025/05/28/Opareting%20System/IO%20management/IO%20software/image-1.png" alt="alt text"></p>
+<p>操作系统系统可以采用两种方式管理逻辑设备表（LUT）：</p>
+<ul>
+<li>第一种方式，整个系统只设置一张LUT，这就意味着所有用户不能使相同的逻辑设备名，因此这种方式只适用于单用户操作系统。</li>
+<li>第二种方式，为每个用户设置一张LUT，各个用户使用的逻辑设备名可以重复，适用于多用户操作系统。系统会在用户登录时为其建立一个用户管理进程，而LUT就存放在用户管理进程的PCB中。</li>
+</ul>
+<hr>
+<p><font size='5'>为何不同的设备需要不同的设备驱动程序？</font></p>
+<p><img src="/2025/05/28/Opareting%20System/IO%20management/IO%20software/image-3.png" alt="alt text"></p>
+<p><img src="/2025/05/28/Opareting%20System/IO%20management/IO%20software/image-2.png" alt="alt text"></p>
+<hr>
+<h3 id="设备驱动程序"><a href="#设备驱动程序" class="headerlink" title="设备驱动程序"></a>设备驱动程序</h3><p>主要负责对硬件设备的具体控制，将上层发出的一系列命令（如read&#x2F;write）转化成特定设备“能听得懂”的一系列操作。包括设置设备寄存器；检查设备状态等</p>
+<h3 id="中断处理程序"><a href="#中断处理程序" class="headerlink" title="中断处理程序"></a>中断处理程序</h3><p>当I&#x2F;O任务完成时，I&#x2F;O控制器会发送一个中断信号，系统会根据中断信号类型找到相应的中断处理程序并执行。中断处理程序的处理流程如下：</p>
+<p><img src="/2025/05/28/Opareting%20System/IO%20management/IO%20software/image-4.png" alt="alt text"></p>
+<p>用户通过调用用户层软件提供的库函数发出的I&#x2F;O请求</p>
+<ul>
+<li>用户通过系统调用请求设备独立性软件层服务</li>
+<li>设备独立性软件层根据LUT调用设备对应的驱动程序</li>
+<li>驱动程序向I&#x2F;O控制器发出具体指令</li>
+<li>等待I&#x2F;O完成的进程应该被阻塞，因此需要进程切换，而进程切换必然需要中断处理。</li>
+</ul>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p><img src="/2025/05/28/Opareting%20System/IO%20management/IO%20software/image-5.png" alt="alt text"></p>
+<p>理解并记住I&#x2F;O软件各个层次之间的顺序，要能够推理判断某个处理应该是在哪个层次完成的（最常考的是设备独立性软件、设备驱动程序这两层）。<font color='red'>只需理解一个特点即可：直接涉及到硬件具体细节、且与中断无关的操作肯定是在设备驱动程序层完成的；没有涉及硬件的、对各种设备都需要进行的管理工作都是在设备独立性软件层完成的。</font></p>
+<h2 id="IO核心子系统"><a href="#IO核心子系统" class="headerlink" title="IO核心子系统"></a>IO核心子系统</h2><p><img src="/2025/05/28/Opareting%20System/IO%20management/IO%20software/image-8.png" alt="alt text"></p>
+<p>假脱机技术在用户层软件实现，假脱机技术需要请求磁盘设备的设备独立性软件服务，因此一般来说假脱机技术是在用户层软件实现的。<br>I&#x2F;O调度、设备保护、设备分配与回收、缓冲区管理（即缓冲与高速缓存）在IO核心子系统实现。</p>
+<p>I&#x2F;O调度：用某种算法确定一个好的顺序来处理各个I&#x2F;O请求。</p>
+<blockquote>
+<p>如：磁盘调度（先来先服务算法、最短寻道优先算法、SCAN算法、C-SCAN算法、LOOK算法、C-LOOK算法）。当多个磁盘I&#x2F;O请求到来时，用某种调度算法确定满足I&#x2F;O请求的顺序。同理，打印机等设备也可以用先来先服务算法、优先级算法、短作业优先等算法来确定I&#x2F;O调度顺序</p>
+</blockquote>
+<p>设备保护：保护设备被正确的控制和执行</p>
+<blockquote>
+<p>在UNIX系统中，设备被看做是一种特殊的文件，每个设备也会有对应的FCB。当用户请求访问某个设备时，系统根据FCB中记录的信息来判断该用户是否有相应的访问权限，以此实现“设备保护”的功能。</p>
+</blockquote>
+<h2 id="假脱机技术"><a href="#假脱机技术" class="headerlink" title="假脱机技术"></a>假脱机技术</h2><p>在手工操作阶段：主机直接从I&#x2F;O设备获得数据，由于设备速度慢，主机速度快。人机矛盾明显，主机要浪费很多时间来等待设备。</p>
+<p><img src="/2025/05/28/Opareting%20System/IO%20management/IO%20software/image-14.png" alt="alt text"></p>
+<p>批处理阶段引入了脱机输入，输出技术：在外围控制机的控制下，慢速输入设备的数据先被输入到更快速的磁带上。之后主机可以快速的从此单上读入数据，从而缓解了速度矛盾。</p>
+<blockquote>
+<p>引入脱机技术后，缓解了CPU与慢速I&#x2F;O设备的速度矛盾。另一方面，即使CPU在忙碌，也可以提前将数据输入到磁带；即使慢速的输出设备正在忙碌，也可以提前将数据输出到磁带。</p>
+</blockquote>
+<h3 id="SPOOLing技术"><a href="#SPOOLing技术" class="headerlink" title="SPOOLing技术"></a>SPOOLing技术</h3><p>假脱机技术，又称<strong>SPOOLing技术</strong>是用软件的方式模拟脱机技术。 <code>SPOOLing</code>系统的组成如下：</p>
+<p><img src="/2025/05/28/Opareting%20System/IO%20management/IO%20software/image-15.png" alt="alt text"></p>
+<ul>
+<li>输出井：用于收容IO设备向磁盘输入的数据。</li>
+<li>输入井：用于收入进程向设备输入的数据。</li>
+<li>输入进程：模拟脱机输入时的外围控制机。</li>
+<li>输出进程：模拟脱机输出时的外围控制机。</li>
+<li>输入缓冲区：将暂存在磁盘中输出的数据，之后在传送到输出设备上。</li>
+<li>输出缓冲区：用于暂存在IO设备输入的数据，之后在传送到输入井中。</li>
+</ul>
+<h3 id="共享打印机原理"><a href="#共享打印机原理" class="headerlink" title="共享打印机原理"></a>共享打印机原理</h3><ul>
+<li>独占式设备：只允许各个进程串行使用的设备。一段时间内只能满足一个进程的请求。</li>
+<li>共享设备：允许多个进程“同时”使用的设备（宏观上同时使用，微观上可能是交替使用）。可以同时满足多个进程的使用请求。</li>
+</ul>
+<p>当多个用户进程提出输出打印的请求时，系统会答应它们的请求，但是并不是真正把打印机分配给他们，而是由假脱机管理进程为每个进程做两件事：</p>
+<p><img src="/2025/05/28/Opareting%20System/IO%20management/IO%20software/image-16.png" alt="alt text"></p>
+<ol>
+<li>在磁盘输出井中为进程申请一个空闲缓冲区，并将要打印数据送入其中。</li>
+<li>为用户进程创建一个打印请求表，并将用户的打印请求填入表中，在将该表挂到假脱机文件队列上。</li>
+</ol>
+<p>当打印机空闲时，输出进程会从文件队列的队头取出一张打印请求表，并根据表中的要求将要打印的数据从输出井传送到输出缓冲区，再输出到打印机进行打印。用这种方式可依次处理完全部的打印任务</p>
+<p>虽然系统中只有一个台打印机，但每个进程提出打印请求时，系统都会为在输出井中为其分配一个存储区（相当于分配了一个逻辑设备），使每个用户进程都觉得自己在独占一台打印机，从而实现对打印机的共享。SPOOLing 技术可以把一台物理设备虚拟成逻辑上的多台设备，可将独占式设备改造成共享设备。</p>
+<h2 id="缓冲区管理"><a href="#缓冲区管理" class="headerlink" title="缓冲区管理"></a>缓冲区管理</h2><p>缓冲区是一个存储区域，可以由专门的硬件寄存器组成，也可利用内存作为缓冲区。使用硬件作为缓冲区的成本较高，容量也较小，一般仅用在对速度要求非常高的场合（如存储器管理中所用的联想寄存器，由于对页表的访问频率极高，因此使用速度很快的联想寄存器来存放页表项的副本）</p>
+<p>一般情况下，更多的是利用内存作为缓冲区，设备独立性软件的缓冲区管理就是要组织管理好这些缓冲区</p>
+<h3 id="缓冲区作用"><a href="#缓冲区作用" class="headerlink" title="缓冲区作用"></a>缓冲区作用</h3><ol>
+<li>缓和CPU和IO设备速度不匹配的矛盾。</li>
+<li>减少对CPU的中断频率，放宽对CPU中断响应时间的限制。</li>
+<li>解决数据粒度不匹配的问题。</li>
+<li>提高CPU和IO设备之间的平行性。</li>
+</ol>
+<p><img src="/2025/05/28/Opareting%20System/IO%20management/IO%20software/image-17.png" alt="alt text"></p>
+<h4 id="单缓冲"><a href="#单缓冲" class="headerlink" title="单缓冲"></a>单缓冲</h4><p>假设某用户进程请求某种块设备读入若干块的数据。若采用单缓冲的策略，操作系统会在主存中为其分配一个缓冲区（若题目中没有特别说明，一个缓冲区的大小就是一个块）。</p>
+<p><font color='red'>注意：当缓冲区数据非空时，不能往缓冲区冲入数据，只能从缓冲区把数据传出；当缓冲区为空时，可以往缓冲区冲入数据，但必须把缓冲区充满以后，才能从缓冲区把数据传出。</font></p>
+<p><img src="/2025/05/28/Opareting%20System/IO%20management/IO%20software/image-18.png" alt="alt text"></p>
+<hr>
+<p>效率分析：</p>
+<p><img src="/2025/05/28/Opareting%20System/IO%20management/IO%20software/image-19.png" alt="alt text"></p>
+<p>结论：采用单缓冲策略，处理一块数据平均耗时$MAX(C, T)+M $</p>
+<hr>
+<h4 id="双缓冲"><a href="#双缓冲" class="headerlink" title="双缓冲"></a>双缓冲</h4><p>假设某用户进程请求某种块设备读入若干块的数据。若采用双缓冲的策略，操作系统会在主存中为其分配两个缓冲区（若题目中没有特别说明，一个缓冲区的大小就是一个块）</p>
+<hr>
+<p>假设初始状态为：工作区空，其中一个缓冲区满，另一个缓冲区空假设$T&lt;C+M$</p>
+<img src='image-20.png' width='500'>
+
+<p><img src="/2025/05/28/Opareting%20System/IO%20management/IO%20software/image-21.png" alt="alt text"></p>
+<p>结论：采用单缓冲策略，处理一块数据平均耗时$MAX(C+M, T)$</p>
+<hr>
+<h4 id="单双缓冲的区别"><a href="#单双缓冲的区别" class="headerlink" title="单双缓冲的区别"></a>单双缓冲的区别</h4><ul>
+<li>若两个相互通信的机器只设置单缓冲区，在任一时刻只能实现数据的单向传输。</li>
+<li>若两个相互通信的机器设置双缓冲区，则同一时刻可以实现双向的数据传输。</li>
+</ul>
+<h4 id="循环缓冲区"><a href="#循环缓冲区" class="headerlink" title="循环缓冲区"></a>循环缓冲区</h4><p>将多个大小相等的缓冲区链接成一个循环队列。<br>注：以下图示中，橙色表示已充满数据的缓冲区，绿色表示空缓冲区。</p>
+<img src='image-22.png' width='500'>
+
+<h4 id="缓冲池"><a href="#缓冲池" class="headerlink" title="缓冲池"></a>缓冲池</h4><p>缓冲池由系统中共用的缓冲区组成。这些缓冲区按使用状况可以分为：空缓冲队列、装满输入数据的缓冲队列（输入队列）、装满输出数据的缓冲队列（输出队列）。</p>
+<p>另外，根据一个缓冲区在实际运算中扮演的功能不同，又设置了四种工作缓冲区：用于收容输入数据的工作缓冲区（hin）、用于提取输入数据的工作缓冲区（sin）、用于收容输出数据的工作缓冲区（hout）、用于提取输出数据的工作缓冲区（sout）</p>
+<p><img src="/2025/05/28/Opareting%20System/IO%20management/IO%20software/image-23.png" alt="alt text"></p>
+<ul>
+<li>输入进程请求输入数据：在空缓冲队列中选择一个空闲缓冲区作为“收容数据的工作缓冲区<code>(hin)</code>”。冲满数据后将缓冲区挂到输入队列队尾。</li>
+<li>计算进程想要取得一块输入数据：从输入队列中获取一块冲满输入数据的缓冲区“作为提取输入数据的工作缓冲区<code>(sin)</code>”。缓冲区读空后挂到空缓冲区队列。</li>
+<li>计算进程想要将准备好的数据冲入缓冲区：从空缓冲队列中取出一块作为“收容输出数据的工作缓冲区<code>(hout)</code>”。数据冲满后将缓冲区挂到输出队列队尾。</li>
+<li>输出进程请求输出数据：从输出队列中取得一块冲满输出数据的缓冲区作为“提取输出数据的工作缓冲区<code>(sout)</code>”。缓冲区读空后挂到空缓冲区队列。</li>
+</ul>
+<h2 id="设备的分配和回收"><a href="#设备的分配和回收" class="headerlink" title="设备的分配和回收"></a>设备的分配和回收</h2><h3 id="设备分配所考虑的因素"><a href="#设备分配所考虑的因素" class="headerlink" title="设备分配所考虑的因素"></a>设备分配所考虑的因素</h3><h4 id="设备的固有属性"><a href="#设备的固有属性" class="headerlink" title="设备的固有属性"></a>设备的固有属性</h4><p><strong>独占设备</strong>：应该时间段只能分配给一个进程<br><strong>共享设备</strong>：可同时分配给多个进程使用，各个进程上往往是宏观上同时使用和共享设备而在微观上交替使用。<br><strong>虚拟设备</strong>：采用SPOOLING技术将独占设备改造成可虚拟的共享设备，可同时分配给多个进程使用。</p>
+<h4 id="设备分配算法"><a href="#设备分配算法" class="headerlink" title="设备分配算法"></a>设备分配算法</h4><p>先来先服务，短任务优先，优先级优先。</p>
+<h4 id="设备分配中的安全性"><a href="#设备分配中的安全性" class="headerlink" title="设备分配中的安全性"></a>设备分配中的安全性</h4><p>从进程运行安全上考虑，设备分配有两种方式:</p>
+<p><strong>安全分配方式</strong>：为进程分配一个设备后就将进程阻塞，本次I&#x2F;O完成后再将进程唤醒。</p>
+<ul>
+<li>特点：一段时间内进程只能使用一个设备。</li>
+<li>优点：破坏了请求和保持条件，不会死锁。</li>
+<li>缺点：对于一个进程来说，CPU和I&#x2F;O设备只能串行工作。</li>
+</ul>
+<p><strong>不安全的分配方式</strong>：进程发出IO请求后，系统为其分配IO设备，进程可继续执行，之后还可以发出新的IO请求，只有某个IO请求得不到满足时才将进程阻塞。</p>
+<ul>
+<li>特点：一个进程可以同时使用多个设备。</li>
+<li>优点：进程运行和IO运行同时进行，提高了进程运行效率</li>
+<li>缺点：容易导致死锁。</li>
+</ul>
+<p>静态分配和动态分配</p>
+<ul>
+<li>静态分配：进程运行前为其分配所需的全部IO资源。</li>
+<li>动态分配：进程运行过程中动态的分配资源</li>
+</ul>
+<h3 id="设备中的数据结构"><a href="#设备中的数据结构" class="headerlink" title="设备中的数据结构"></a>设备中的数据结构</h3><p><img src="/2025/05/28/Opareting%20System/IO%20management/IO%20software/image-9.png" alt="alt text"></p>
+<p>设备控制表：系统为每个失败配置一张DCT，用于记录设备情况。</p>
+<p><img src="/2025/05/28/Opareting%20System/IO%20management/IO%20software/image-10.png" alt="alt text"></p>
+<ul>
+<li>设备控制器表：每个设备控制器都会对应一张COCT。操作系统根据COCT的信息对控制器进行操作和管理。</li>
+</ul>
+<p><img src="/2025/05/28/Opareting%20System/IO%20management/IO%20software/image-11.png" alt="alt text"></p>
+<ul>
+<li>通道控制表： 每个通道都会对应一张CHCT。操作系统根据CHCT的信息对通道进行操作和管理。</li>
+</ul>
+<p><img src="/2025/05/28/Opareting%20System/IO%20management/IO%20software/image-12.png" alt="alt text"></p>
+<ul>
+<li>系统设备表：记录了系统中全部设备的情况，每个设备对应一个表目。</li>
+</ul>
+<p><img src="/2025/05/28/Opareting%20System/IO%20management/IO%20software/image-13.png" alt="alt text"></p>
+<p>设备分配的步骤：</p>
+<ol>
+<li>根据进程请求的物理设备名查找SDT</li>
+<li>根据SDT找DCT，若设备忙碌则将进程PCB挂到设备等待队列中，不忙了则将设备分配给进程。</li>
+<li>根据DCT找COCT，若控制器忙碌则将进程PCB挂到控制器等待队列中，不忙了则将控制器分配给进程。</li>
+<li>根据COCT找到CHCT，若通道忙碌则将进程PCB挂到通道等待队列中，不忙碌则将通道分配给进程。</li>
+</ol>
+<h3 id="设备分配步骤的改进"><a href="#设备分配步骤的改进" class="headerlink" title="设备分配步骤的改进"></a>设备分配步骤的改进</h3><p><strong>逻辑分配表(LUT)</strong>：建立了逻辑设备与物理设备名之间映射关系</p>
+<p>某用户进程第一次使用设备时使用逻辑设备名向操作系统发出请求，操作系统根据用户进程指定的设备类型查找系统设备表，找到一个空闲设备分配给改进程，并在LUT中增加表项。<font color='red'>如果之后用户进程再次通过逻辑设备名请求使用设备，则操作系统通过LUT表就可以知道用户实际要使用哪个设备，并且也能知道对应设备驱动程序的地址。</font></p>
+<ul>
+<li>整个系统设只有一张LUT：各个用户使用的逻辑设备名不重复，适用与单用户操作系统。</li>
+<li>一个进程设置一张LUT：不用用户的逻辑设备名可以重复，适用于多用户操作系统。</li>
+</ul>
+<h2 id="输入输出程序接口"><a href="#输入输出程序接口" class="headerlink" title="输入输出程序接口"></a>输入输出程序接口</h2><p><img src="/2025/05/28/Opareting%20System/IO%20management/IO%20software/image-6.png" alt="alt text"></p>
+<h2 id="设备驱动接口"><a href="#设备驱动接口" class="headerlink" title="设备驱动接口"></a>设备驱动接口</h2><p><img src="/2025/05/28/Opareting%20System/IO%20management/IO%20software/image-7.png" alt="alt text"></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://MyAKDream.com">MyAKDream</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://myakdream.com/2025/05/28/Opareting%20System/IO%20management/IO%20software/">http://myakdream.com/2025/05/28/Opareting%20System/IO%20management/IO%20software/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="http://MyAKDream.com" target="_blank">MyAKDreamのBlog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/IO%E7%AE%A1%E7%90%86/">IO管理</a></div><div class="post-share"><div class="social-share" data-image="/images/Opareting-System.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/05/28/Opareting%20System/IO%20management/IO%20controller/" title="IO控制器"><img class="cover" src="/images/Opareting-System.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">IO控制器</div></div><div class="info-2"><div class="info-item-1">...</div></div></div></a><a class="pagination-related" href="/2025/05/28/Opareting%20System/IO%20management/Summarize/" title="IO概述"><img class="cover" src="/images/Opareting-System.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">IO概述</div></div><div class="info-2"><div class="info-item-1">IO概述IO设备I&#x2F;O就是输入输出，I&#x2F;O设备就是可以将数据输入到计算机，或者可以就接收到计算机输出数据的外部设备，属于计算机中硬件部件。  UNIX系统将外部设备抽象为一种特殊的文件，用户可以使用与文件操作相同的方式对外部设备进行操作。  Write操作：向外部设备写出数据。 Read操作：从外部设备读入数据。  IO设备分类按使用特性 按传输速率分类 按信息交换单位分类 </div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2025/05/28/Opareting%20System/IO%20management/IO%20controller/" title="IO控制器"><img class="cover" src="/images/Opareting-System.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-05-28</div><div class="info-item-2">IO控制器</div></div><div class="info-2"><div class="info-item-1">...</div></div></div></a><a class="pagination-related" href="/2025/05/28/Opareting%20System/IO%20management/Summarize/" title="IO概述"><img class="cover" src="/images/Opareting-System.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-05-28</div><div class="info-item-2">IO概述</div></div><div class="info-2"><div class="info-item-1">IO概述IO设备I&#x2F;O就是输入输出，I&#x2F;O设备就是可以将数据输入到计算机，或者可以就接收到计算机输出数据的外部设备，属于计算机中硬件部件。  UNIX系统将外部设备抽象为一种特殊的文件，用户可以使用与文件操作相同的方式对外部设备进行操作。  Write操作：向外部设备写出数据。 Read操作：从外部设备读入数据。  IO设备分类按使用特性 按传输速率分类 按信息交换单位分类 </div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/favicon.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">MyAKDream</div><div class="author-info-description">Computer Science Note By MyAKDream</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">72</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">31</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#IO%E8%BD%AF%E4%BB%B6"><span class="toc-number">1.</span> <span class="toc-text">IO软件</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#IO%E8%BD%AF%E4%BB%B6%E5%B1%82%E6%AC%A1%E7%BB%93%E6%9E%84"><span class="toc-number">1.1.</span> <span class="toc-text">IO软件层次结构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%BE%E5%A4%87%E7%8B%AC%E7%AB%8B%E6%80%A7%E8%BD%AF%E4%BB%B6"><span class="toc-number">1.1.1.</span> <span class="toc-text">设备独立性软件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E7%A8%8B%E5%BA%8F"><span class="toc-number">1.1.2.</span> <span class="toc-text">设备驱动程序</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%AD%E6%96%AD%E5%A4%84%E7%90%86%E7%A8%8B%E5%BA%8F"><span class="toc-number">1.1.3.</span> <span class="toc-text">中断处理程序</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.1.4.</span> <span class="toc-text">总结</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#IO%E6%A0%B8%E5%BF%83%E5%AD%90%E7%B3%BB%E7%BB%9F"><span class="toc-number">1.2.</span> <span class="toc-text">IO核心子系统</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%81%87%E8%84%B1%E6%9C%BA%E6%8A%80%E6%9C%AF"><span class="toc-number">1.3.</span> <span class="toc-text">假脱机技术</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#SPOOLing%E6%8A%80%E6%9C%AF"><span class="toc-number">1.3.1.</span> <span class="toc-text">SPOOLing技术</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B1%E4%BA%AB%E6%89%93%E5%8D%B0%E6%9C%BA%E5%8E%9F%E7%90%86"><span class="toc-number">1.3.2.</span> <span class="toc-text">共享打印机原理</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BC%93%E5%86%B2%E5%8C%BA%E7%AE%A1%E7%90%86"><span class="toc-number">1.4.</span> <span class="toc-text">缓冲区管理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BC%93%E5%86%B2%E5%8C%BA%E4%BD%9C%E7%94%A8"><span class="toc-number">1.4.1.</span> <span class="toc-text">缓冲区作用</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8D%95%E7%BC%93%E5%86%B2"><span class="toc-number">1.4.1.1.</span> <span class="toc-text">单缓冲</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8F%8C%E7%BC%93%E5%86%B2"><span class="toc-number">1.4.1.2.</span> <span class="toc-text">双缓冲</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8D%95%E5%8F%8C%E7%BC%93%E5%86%B2%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">1.4.1.3.</span> <span class="toc-text">单双缓冲的区别</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%BE%AA%E7%8E%AF%E7%BC%93%E5%86%B2%E5%8C%BA"><span class="toc-number">1.4.1.4.</span> <span class="toc-text">循环缓冲区</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%BC%93%E5%86%B2%E6%B1%A0"><span class="toc-number">1.4.1.5.</span> <span class="toc-text">缓冲池</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%BE%E5%A4%87%E7%9A%84%E5%88%86%E9%85%8D%E5%92%8C%E5%9B%9E%E6%94%B6"><span class="toc-number">1.5.</span> <span class="toc-text">设备的分配和回收</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%BE%E5%A4%87%E5%88%86%E9%85%8D%E6%89%80%E8%80%83%E8%99%91%E7%9A%84%E5%9B%A0%E7%B4%A0"><span class="toc-number">1.5.1.</span> <span class="toc-text">设备分配所考虑的因素</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%AE%BE%E5%A4%87%E7%9A%84%E5%9B%BA%E6%9C%89%E5%B1%9E%E6%80%A7"><span class="toc-number">1.5.1.1.</span> <span class="toc-text">设备的固有属性</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%AE%BE%E5%A4%87%E5%88%86%E9%85%8D%E7%AE%97%E6%B3%95"><span class="toc-number">1.5.1.2.</span> <span class="toc-text">设备分配算法</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%AE%BE%E5%A4%87%E5%88%86%E9%85%8D%E4%B8%AD%E7%9A%84%E5%AE%89%E5%85%A8%E6%80%A7"><span class="toc-number">1.5.1.3.</span> <span class="toc-text">设备分配中的安全性</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%BE%E5%A4%87%E4%B8%AD%E7%9A%84%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="toc-number">1.5.2.</span> <span class="toc-text">设备中的数据结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%BE%E5%A4%87%E5%88%86%E9%85%8D%E6%AD%A5%E9%AA%A4%E7%9A%84%E6%94%B9%E8%BF%9B"><span class="toc-number">1.5.3.</span> <span class="toc-text">设备分配步骤的改进</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BE%93%E5%85%A5%E8%BE%93%E5%87%BA%E7%A8%8B%E5%BA%8F%E6%8E%A5%E5%8F%A3"><span class="toc-number">1.6.</span> <span class="toc-text">输入输出程序接口</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E6%8E%A5%E5%8F%A3"><span class="toc-number">1.7.</span> <span class="toc-text">设备驱动接口</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2025/05/28/Opareting%20System/IO%20management/IO%20controller/" title="IO控制器"><img src="/images/Opareting-System.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="IO控制器"/></a><div class="content"><a class="title" href="/2025/05/28/Opareting%20System/IO%20management/IO%20controller/" title="IO控制器">IO控制器</a><time datetime="2025-05-27T16:00:00.000Z" title="发表于 2025-05-28 00:00:00">2025-05-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/05/28/Opareting%20System/IO%20management/IO%20software/" title="IO软件"><img src="/images/Opareting-System.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="IO软件"/></a><div class="content"><a class="title" href="/2025/05/28/Opareting%20System/IO%20management/IO%20software/" title="IO软件">IO软件</a><time datetime="2025-05-27T16:00:00.000Z" title="发表于 2025-05-28 00:00:00">2025-05-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/05/28/Opareting%20System/IO%20management/Summarize/" title="IO概述"><img src="/images/Opareting-System.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="IO概述"/></a><div class="content"><a class="title" href="/2025/05/28/Opareting%20System/IO%20management/Summarize/" title="IO概述">IO概述</a><time datetime="2025-05-27T16:00:00.000Z" title="发表于 2025-05-28 00:00:00">2025-05-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/05/15/Opareting%20System/File%20System/Summarize/" title="文件管理概述"><img src="/images/Opareting-System.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="文件管理概述"/></a><div class="content"><a class="title" href="/2025/05/15/Opareting%20System/File%20System/Summarize/" title="文件管理概述">文件管理概述</a><time datetime="2025-05-14T16:00:00.000Z" title="发表于 2025-05-15 00:00:00">2025-05-15</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/05/15/Opareting%20System/File%20System/File%20structure/" title="文件结构"><img src="/images/Opareting-System.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="文件结构"/></a><div class="content"><a class="title" href="/2025/05/15/Opareting%20System/File%20System/File%20structure/" title="文件结构">文件结构</a><time datetime="2025-05-14T16:00:00.000Z" title="发表于 2025-05-15 00:00:00">2025-05-15</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;2025 By MyAKDream</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.0-b1</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"></div><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/fireworks.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
