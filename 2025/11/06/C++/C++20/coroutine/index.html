@@ -1,0 +1,260 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>协程 | MyAKDreamのBlog</title><meta name="author" content="MyAKDream"><meta name="copyright" content="MyAKDream"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="协程概念协程是一种特殊的函数，不像普通函数那样，一旦执行这个函数就会一直执行下去，直到函数结束或者出现异常。而协程就非常灵活，它在执行的过程中可以随时暂停，把 CPU 资源让出来，等到合适的时候再重新恢复运行。 协程的使用场景当你正在一个大型的网络服务器，需要处理多个并发的客户端请求，但是传统的服务器是给每个请求分配一个线程来进行处理，这样会导致资源消耗过大。而使用协程，你可以在一个线程中同时处理">
+<meta property="og:type" content="article">
+<meta property="og:title" content="协程">
+<meta property="og:url" content="http://myakdream.com/2025/11/06/C++/C++20/coroutine/index.html">
+<meta property="og:site_name" content="MyAKDreamのBlog">
+<meta property="og:description" content="协程概念协程是一种特殊的函数，不像普通函数那样，一旦执行这个函数就会一直执行下去，直到函数结束或者出现异常。而协程就非常灵活，它在执行的过程中可以随时暂停，把 CPU 资源让出来，等到合适的时候再重新恢复运行。 协程的使用场景当你正在一个大型的网络服务器，需要处理多个并发的客户端请求，但是传统的服务器是给每个请求分配一个线程来进行处理，这样会导致资源消耗过大。而使用协程，你可以在一个线程中同时处理">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://myakdream.com/images/C++.png">
+<meta property="article:published_time" content="2025-11-05T16:00:00.000Z">
+<meta property="article:modified_time" content="2025-11-06T09:43:07.226Z">
+<meta property="article:author" content="MyAKDream">
+<meta property="article:tag" content="C++">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://myakdream.com/images/C++.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "协程",
+  "url": "http://myakdream.com/2025/11/06/C++/C++20/coroutine/",
+  "image": "http://myakdream.com/images/C++.png",
+  "datePublished": "2025-11-05T16:00:00.000Z",
+  "dateModified": "2025-11-06T09:43:07.226Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "MyAKDream",
+      "url": "http://myakdream.com/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://myakdream.com/2025/11/06/C++/C++20/coroutine/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '协程',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/favicon.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">76</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">16</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">37</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/images/C++.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">MyAKDreamのBlog</span></a><a class="nav-page-title" href="/"><span class="site-name">协程</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">协程</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-11-05T16:00:00.000Z" title="发表于 2025-11-06 00:00:00">2025-11-06</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-11-06T09:43:07.226Z" title="更新于 2025-11-06 17:43:07">2025-11-06</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/C-Backend/">C++ Backend</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/C-Backend/C/">C++</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/C-Backend/C/C-20/">C++20</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="协程"><a href="#协程" class="headerlink" title="协程"></a>协程</h1><h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p>协程是一种特殊的函数，不像普通函数那样，一旦执行这个函数就会一直执行下去，直到函数结束或者出现异常。而协程就非常灵活，它在执行的过程中可以随时暂停，把 CPU 资源让出来，等到合适的时候再重新恢复运行。</p>
+<h2 id="协程的使用场景"><a href="#协程的使用场景" class="headerlink" title="协程的使用场景"></a>协程的使用场景</h2><p>当你正在一个大型的网络服务器，需要处理多个并发的客户端请求，但是传统的服务器是给每个请求分配一个线程来进行处理，这样会导致资源消耗过大。而使用协程，你可以在一个线程中同时处理多个客户端的请求，当某个客户端的请求需要等待 I&#x2F;O 时，协程可以暂停执行，切换到处理其他客户端的请求，从而提高服务器的并发能力。</p>
+<h2 id="有栈协程和无栈协程"><a href="#有栈协程和无栈协程" class="headerlink" title="有栈协程和无栈协程"></a>有栈协程和无栈协程</h2><ul>
+<li>有栈线程：协程在执行时会使用自己的栈空间，协程的调用和返回都是通过栈来实现的。这种方式的优点是实现简单，性能较好，但缺点是栈空间有限，容易导致栈溢出。Go 语言的协程就是有栈协程的一个典型例子。</li>
+<li>无栈协程： 协程在执行时不使用自己的栈空间，而是将所有的状态信息保存在堆上。这种方式的优点是可以支持更大的协程栈，但缺点是实现复杂。C#的协程就是无栈协程的一个典型例子。</li>
+</ul>
+<h1 id="C-协程"><a href="#C-协程" class="headerlink" title="C++ 协程"></a>C++ 协程</h1><h2 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h2><p>C++ 的协程是无栈协程，是基于状态机的实现的，编译器把协程函数编译成一个特殊的函数，这个函数有很多状态，可以被挂起（让出 CPU 资源，也叫暂停执行），恢复执行等等。这样的函数也叫做可重入函数。协程的状态信息（如局部变量、返回地址等）保存在堆上，而不是栈上。</p>
+<p><img src="/2025/11/06/C++/C++20/coroutine/image.png" alt="alt text"></p>
+<p>从这个图中可以看出，协程函数可以被挂起（暂停执行）和恢复执行，协程函数可以在多个状态之间切换，这些状态包括挂起、恢复和完成等。这样的设计使得协程能够在执行过程中灵活地让出控制权。</p>
+<p>至于协程函数是怎样被挂起和恢复的，主要是通过编译器生成的状态机来实现的。当协程函数被挂起时，编译器会保存当前的执行状态（如局部变量、返回地址等），并将控制权交回给调用者。当协程函数被恢复时，编译器会恢复之前保存的执行状态，从而实现协程的继续执行。</p>
+<h2 id="核心概念"><a href="#核心概念" class="headerlink" title="核心概念"></a>核心概念</h2><p>C++20 协程引入了几个关键概念，理解这些概念是掌握协程的基础：</p>
+<ul>
+<li><p><strong>Coroutine Frame （协程帧）</strong>：协程帧是协程的运行时状态存储区域，包含了协程的局部变量、参数以及恢复执行所需的信息。协程帧通常分配在堆上，由编译器自动生成和管理。</p>
+</li>
+<li><p><strong>Promise（承诺）：</strong><code>Promise</code> 是一个接口，用于定义协程的行为。它包含了协程的返回值类型、异常处理方式以及挂起&#x2F;恢复逻辑。可以通过自定义 <code>Promise</code> 类型，来控制协程的行为。</p>
+<ul>
+<li><code>get_return_object()</code>：这个方法用于返回协程的返回值。返回值类型可以是 <code>void</code>，也可以是其他类型。例如，可以返回一个 <code>Task</code> 对象。</li>
+<li><code>inital_suspend()</code>：这个方法用于控制协程的初始挂起行为，返回值为等待体 <code>awaiter</code>。如果返回 <code>std::suspend_always</code>，则协程在开始执行时会立即挂起。如果返回 <code>std::suspend_never</code>，则协程会立即执行。</li>
+<li><code>final_suspend()</code>：这个方法用于控制协程的初始挂起行为。如果返回 <code>std::suspend_always</code>，则协程在开始执行时会立即挂起。如果返回 <code>std::suspend_never</code>，则协程会立即执行。</li>
+<li><code>return_void()</code>：这个方法用于处理协程的正常返回。当协程执行到 <code>co_return</code> 语句时，会调用这个方法。</li>
+<li><code>return_void(T value)</code>：这个方法用于处理协程的正常返回。当协程执行到 <code>co_return value</code> 语句时，会调用这个方法。<code>T</code> 是模版参数类型。</li>
+<li><code>unhandle_exception()</code>：这个方法用于处理协程的异常。当协程抛出异常时，会调用这个方法。</li>
+<li><code>yield_value(T value)</code>：这个方法用于处理协程的 <code>co_yield</code> 语句。<code>co_yield</code> 语句用于生成一个值，并暂停协程的执行。<code>T</code> 是模版参数类型。</li>
+</ul>
+</li>
+<li><p>**Coroutine Handle（协程句柄）：**协程句柄是一个轻量级的指针，用于操作协程。可以通过协程句柄来恢复、销毁线程。协程句柄的表现形式是 <code>std::coroutine_handle&lt;promise_type&gt;</code>，其模板参数为承诺对象 <code>promise</code> 类型。句柄有几个重要函数：</p>
+<ul>
+<li><code>resume()</code> 函数可以恢复协程。</li>
+<li><code>done()</code> 函数可以判断协程函数是否已经完成。返回 <code>false</code> 表示协程还没有完成，还在挂起。<br>协程句柄和承诺对象之间是可以相互转化的。</li>
+<li><code>std::coroutine_handle&lt;promise_type&gt;::from_promise()</code>： 这是一个静态函数，可以从承诺对象 <code>promise</code> 得到相应句柄。</li>
+<li><code>std::coroutine_handle&lt;promise_type&gt;::promise()</code> 函数可以从协程句柄 <code>coroutine handle</code> 得到对应的承诺对象 <code>promise</code></li>
+</ul>
+</li>
+<li><p><strong>Awaitable（可等待对象）：</strong><code>Awaitable</code> 是一个类型，用于表示一个异步操作。当协程遇到一个 <code>Awaitable</code> 对象时，可以选择挂起执行，等待异步操作完成。<code>Awaitable</code> 对象需要提供 <code>await_ready()</code>、<code>await_suspend()</code> 和 <code>await_resume()</code> 三个方法，用于控制协程的挂起、恢复逻辑。</p>
+<ul>
+<li><code>bool await_ready()</code>：等待体是否准备好了，返回 false ，表示协程没有准备好，立即调用 await_suspend。返回 true，表示已经准备好了。</li>
+<li><code>auto await_suspend(std::coroutine_handle&lt;&gt; handle)</code>：如果要挂起，调用的接口。其中 handle 参数就是调用等待体的协程，其返回值有 3 种可能<ul>
+<li><code>void</code> 同返回 <code>true</code></li>
+<li><code>bool</code> 返回 <code>true</code> 立即挂起，返回 <code>false</code> 不挂起。</li>
+<li>返回某个协程句柄 <code>coroutine handle</code>，立即恢复对应句柄的运行。</li>
+</ul>
+</li>
+<li><code>auto await_resume()</code>：协程挂起后恢复时，调用的接口。返回值作为 <code>co_wait</code> 操作的返回值。</li>
+</ul>
+</li>
+</ul>
+<h2 id="关键字"><a href="#关键字" class="headerlink" title="关键字"></a>关键字</h2><ul>
+<li><p><code>co_await</code>：<code>co_await</code> 调用一个 <code>awaiter</code> 对象（可以认为是一个接口），根据其内部定义决定其操作是挂起，还是继续，以及挂起，恢复时的行为。其呈现形式为</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cw_ret = <span class="keyword">co_await</span> awaiter;</span><br></pre></td></tr></table></figure>
+<p><code>cw_ret</code> 记录调用的返回值，其是<code>awaiter</code>的<code>await_resume</code>接口返回值。</p>
+</li>
+<li><p><code>co_yield</code>：挂起协程。其出现形式是</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">co_yield cy_ret;</span><br></pre></td></tr></table></figure>
+<p><code>cy_ret</code> 会保存在 <code>promise</code>承诺对象中（通过 <code>yield_value</code> 函数）。在协程外部可以通过 <code>promise</code> 得到。</p>
+</li>
+<li><p><code>co_return</code>：协程返回。其出现形式是</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">co_return cr_ret;</span><br></pre></td></tr></table></figure>
+<p>  <code>cr_ret</code>会保存在<code>promise</code>承诺对象中（通过<code>return_value</code>函数）。在协程外部可以通过<code>promise</code>得到。要注意，<code>cr_ret</code>并不是协程的返回值。这个是有区别的。</p>
+</li>
+</ul>
+<h2 id="举例"><a href="#举例" class="headerlink" title="举例"></a>举例</h2><p>这个例程展示了使用协程进行多任务调度的场景：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;coroutine&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;queue&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">CoroutineTask</span> &#123;</span><br><span class="line">    <span class="keyword">struct</span> <span class="title class_">promise_type</span> &#123;</span><br><span class="line">        <span class="function">CoroutineTask <span class="title">get_return_object</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> CoroutineTask&#123; std::coroutine_handle&lt;promise_type&gt;::<span class="built_in">from_promise</span>(*<span class="keyword">this</span>) &#125;;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="function">std::suspend_never <span class="title">initial_suspend</span><span class="params">()</span> <span class="keyword">noexcept</span> </span>&#123; <span class="keyword">return</span> &#123;&#125;; &#125;</span><br><span class="line">        <span class="function">std::suspend_always <span class="title">final_suspend</span><span class="params">()</span> <span class="keyword">noexcept</span> </span>&#123; <span class="keyword">return</span> &#123;&#125;; &#125;</span><br><span class="line">        <span class="function"><span class="type">void</span> <span class="title">unhandled_exception</span><span class="params">()</span> </span>&#123; std::<span class="built_in">terminate</span>(); &#125;</span><br><span class="line">        <span class="function"><span class="type">void</span> <span class="title">return_void</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    std::coroutine_handle&lt;promise_type&gt; handle;</span><br><span class="line">    <span class="built_in">CoroutineTask</span>(std::coroutine_handle&lt;promise_type&gt; h) : <span class="built_in">handle</span>(h) &#123;&#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">Task</span> &#123;</span><br><span class="line">    CoroutineTask coro_task;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">Task</span>(CoroutineTask&amp;&amp; task) : <span class="built_in">coro_task</span>(std::<span class="built_in">move</span>(task)) &#123;&#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Scheduler</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">schedule</span><span class="params">(Task task)</span> </span>&#123;</span><br><span class="line">        tasks.<span class="built_in">push</span>(std::<span class="built_in">move</span>(task));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">while</span> (!tasks.<span class="built_in">empty</span>()) &#123;</span><br><span class="line">            Task current = std::<span class="built_in">move</span>(tasks.<span class="built_in">front</span>());</span><br><span class="line">            tasks.<span class="built_in">pop</span>();</span><br><span class="line"></span><br><span class="line">            current.coro_task.handle.<span class="built_in">resume</span>();</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (!current.coro_task.handle.<span class="built_in">done</span>()) &#123;</span><br><span class="line">                tasks.<span class="built_in">push</span>(std::<span class="built_in">move</span>(current));</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    std::queue&lt;Task&gt; tasks;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function">CoroutineTask <span class="title">printNumbers</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">10</span>; ++i) &#123;</span><br><span class="line">        std::cout &lt;&lt; i &lt;&lt; <span class="string">&quot; &quot;</span>;</span><br><span class="line">        <span class="keyword">co_await</span> std::suspend_always&#123;&#125;;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">co_return</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">CoroutineTask <span class="title">printLetters</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">char</span> c = <span class="string">&#x27;a&#x27;</span>; c &lt; <span class="string">&#x27;k&#x27;</span>; ++c) &#123;</span><br><span class="line">        std::cout &lt;&lt; c &lt;&lt; <span class="string">&quot; &quot;</span>;</span><br><span class="line">        <span class="keyword">co_await</span> std::suspend_always&#123;&#125;;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">co_return</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    Scheduler scheduler;</span><br><span class="line">    scheduler.<span class="built_in">schedule</span>(<span class="built_in">Task</span>(<span class="built_in">printNumbers</span>()));</span><br><span class="line">    scheduler.<span class="built_in">schedule</span>(<span class="built_in">Task</span>(<span class="built_in">printLetters</span>()));</span><br><span class="line">    scheduler.<span class="built_in">run</span>();</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>阶段一：协程的创建和初始化<br>在 <code>main</code> 函数中：</p>
+<ol>
+<li>创建调度器：首先创建协程调度器 <code>Scheduler</code> 对象，开始时任务调度队列为空。</li>
+<li><code>Task(printNumbers())</code>：调用协程函数 <code>printNumbers()</code>。由于该函数包含 <code>co_await</code>，它是一个协程。**关键点：**协程的初始启动当 <code>printNumbers()</code> 被调用时，并非立即执行函数体内的代码。编译器会先为其创建协程状态 <code>coroutine state</code> 对象，其中包含 <code>promise_type</code> 的实例。紧接着会调用 <code>promise_type</code> 的 <code>initial_suspend()</code> 方法。在代码中，该方法返回 <code>std::suspend_never</code>，意味着协程帧创建后不会立即挂起，而是直接开始执行函数体内的代码。</li>
+<li><code>CoroutineTask</code> 对象通过 <code>get_return_object()</code> 获得，它包装了管理该协程的句柄 <code>handle</code>。</li>
+<li>这个 <code>CoroutineTask</code> 最终被包装成 Task 对象，并通过 <code>schedule</code> 方法加入到调度器的任务队列中。</li>
+<li><code>printLetters()</code> 的创建过程与此完全相同。</li>
+</ol>
+</li>
+<li><p>阶段二：调度器运行循环：<br><code>scheduler.run()</code> 启动后，进入核心循环流程：</p>
+<ol>
+<li>调用 <code>current.coro_task.handle.resume()</code>。这将执行权交给协程。</li>
+<li>协程从它上次挂起的位置（对于首次执行，则是从函数体开头）继续运行。<ul>
+<li><code>printNumbers</code> 会执行 <code>std::cout &lt;&lt; i &lt;&lt; &quot; &quot;;</code>，假设此时 <code>i=0</code>，输出 <code>0</code>。</li>
+<li>遇到 <code>co_await std::suspend_always&#123;&#125;;</code>。这个表达式会使得协程挂起。<code>std::suspend_always</code> 的 <code>await_ready()</code> 返回 <code>false</code>，因此 <code>await_suspend</code> 被调用，协程在此暂停，控制权返回给调用者，也就是调度器的 <code>run</code> 函数。</li>
+</ul>
+</li>
+<li>调度器检查该协程句柄的 <code>done()</code> 状态。由于 <code>printNumbers</code> 的循环还没结束，协程并未完成，所以调度器将当前任务对象重新放回任务队列的尾部。</li>
+<li>调度器从队列中取出下一个任务（现在是 <code>printLetters</code>），并重复恢复执行——&gt; 挂起——&gt; 重新入队的过程。<code>printLetters</code> 会输出 <code>a</code>，然后挂起，并被重新加入队列。</li>
+</ol>
+</li>
+<li><p>阶段三：循环与交替输出<br>调度器会持续从队列头部取任务，执行直到协程挂起，然后将未完成的任务放回队尾。这个过程形成了 轮转 <code>Round-Robin</code> 调度，使得两个协程交替执行。最终，将会看到以下的交错输出：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0</span> a <span class="number">1</span> b <span class="number">2</span> c <span class="number">3</span> d <span class="number">4</span> e <span class="number">5</span> f <span class="number">6</span> g <span class="number">7</span> h <span class="number">8</span> i <span class="number">9</span> j</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>阶段四：协程完成与清理</p>
+<ol>
+<li>当一个协程<code>printNumbers</code>循环结束，执行到<code>co_return;</code>时，它会进入结束序列。</li>
+<li>编译器会调用<code>promise_type</code>的<code>final_suspend()</code>方法。你的代码中返回<code>std::suspend_always</code>，这意味着协程在最终完成后仍然保持挂起状态。</li>
+<li>此时，调度器检查该协程句柄的<code>done()</code>方法会返回<code>true</code>。</li>
+<li>因此，调度器不会再将这个已经完成的任务重新放入队列。</li>
+<li>由于<code>CoroutineTask</code>对象的析构函数没有显式地调用<code>handle.destroy()</code>，而协程状态又因<code>final_suspend</code>返回了<code>std::suspend_always</code>而没有被自动销毁，这可能会导致协程状态的内存泄漏。一个健壮的实现通常需要在<code>CoroutineTask</code>的析构函数中判断如果协程未销毁，则调用<code>handle.destroy()</code>来释放资源。</li>
+</ol>
+</li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://MyAKDream.com">MyAKDream</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://myakdream.com/2025/11/06/C++/C++20/coroutine/">http://myakdream.com/2025/11/06/C++/C++20/coroutine/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="http://MyAKDream.com" target="_blank">MyAKDreamのBlog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/C/">C++</a></div><div class="post-share"><div class="social-share" data-image="/images/C++.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2025/06/05/Computer%20Composition/Representation%20and%20calculation%20of%20data/Number%20system%20and%20coding/" title="数制和编码"><img class="cover" src="/images/Computer-Composition.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">数制和编码</div></div><div class="info-2"><div class="info-item-1">数制和编码真值和机器数 真值：符合人类习惯的数字 机器数：数字实际存到机器里的形式，正负号需要被数字化                             真值             机器数                                         +15             0 1111                               -8             1 1000                 BCD码BCD码：二进制编码的十进制数 二进制数：0、1      方便计算机处理十进制数：0、1、2、3、4、5、6、7、8、9、10  符合人类习惯  BCD码的计算   进制数 算术式 结果    十进制 5 + 8 13   8421码 0101 + 1000 1101   我们发现1101不在8421码映射表里，8421码中1010~1111没有定义。我们可以在这个运算基础上+6即：1101 + 0110 = 10011即0001 0011也就是13。    进制数 算术式 结果    十进制 9 +...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/favicon.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">MyAKDream</div><div class="author-info-description">Computer Science Note By MyAKDream</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">76</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">16</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">37</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%8F%E7%A8%8B"><span class="toc-number">1.</span> <span class="toc-text">协程</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A6%82%E5%BF%B5"><span class="toc-number">1.1.</span> <span class="toc-text">概念</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%8F%E7%A8%8B%E7%9A%84%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">1.2.</span> <span class="toc-text">协程的使用场景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%89%E6%A0%88%E5%8D%8F%E7%A8%8B%E5%92%8C%E6%97%A0%E6%A0%88%E5%8D%8F%E7%A8%8B"><span class="toc-number">1.3.</span> <span class="toc-text">有栈协程和无栈协程</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#C-%E5%8D%8F%E7%A8%8B"><span class="toc-number">2.</span> <span class="toc-text">C++ 协程</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8E%9F%E7%90%86"><span class="toc-number">2.1.</span> <span class="toc-text">原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5"><span class="toc-number">2.2.</span> <span class="toc-text">核心概念</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E5%AD%97"><span class="toc-number">2.3.</span> <span class="toc-text">关键字</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BE%E4%BE%8B"><span class="toc-number">2.4.</span> <span class="toc-text">举例</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2025/11/06/C++/C++20/coroutine/" title="协程"><img src="/images/C++.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="协程"/></a><div class="content"><a class="title" href="/2025/11/06/C++/C++20/coroutine/" title="协程">协程</a><time datetime="2025-11-05T16:00:00.000Z" title="发表于 2025-11-06 00:00:00">2025-11-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/06/05/Computer%20Composition/Computer%20Systems%20Overview/Basic%20Hardware/" title="计算机硬件"><img src="/images/Computer-Composition.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="计算机硬件"/></a><div class="content"><a class="title" href="/2025/06/05/Computer%20Composition/Computer%20Systems%20Overview/Basic%20Hardware/" title="计算机硬件">计算机硬件</a><time datetime="2025-06-04T16:00:00.000Z" title="发表于 2025-06-05 00:00:00">2025-06-05</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/06/05/Computer%20Composition/Computer%20Systems%20Overview/Computer%20performance%20index/" title="计算机性能指标"><img src="/images/Computer-Composition.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="计算机性能指标"/></a><div class="content"><a class="title" href="/2025/06/05/Computer%20Composition/Computer%20Systems%20Overview/Computer%20performance%20index/" title="计算机性能指标">计算机性能指标</a><time datetime="2025-06-04T16:00:00.000Z" title="发表于 2025-06-05 00:00:00">2025-06-05</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/06/05/Computer%20Composition/Representation%20and%20calculation%20of%20data/Number%20system%20and%20coding/" title="数制和编码"><img src="/images/Computer-Composition.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="数制和编码"/></a><div class="content"><a class="title" href="/2025/06/05/Computer%20Composition/Representation%20and%20calculation%20of%20data/Number%20system%20and%20coding/" title="数制和编码">数制和编码</a><time datetime="2025-06-04T16:00:00.000Z" title="发表于 2025-06-05 00:00:00">2025-06-05</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/05/28/Opareting%20System/IO%20management/IO%20controller/" title="IO控制器"><img src="/images/Opareting-System.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="IO控制器"/></a><div class="content"><a class="title" href="/2025/05/28/Opareting%20System/IO%20management/IO%20controller/" title="IO控制器">IO控制器</a><time datetime="2025-05-27T16:00:00.000Z" title="发表于 2025-05-28 00:00:00">2025-05-28</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;2025 By MyAKDream</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.0-b1</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"></div><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/fireworks.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
